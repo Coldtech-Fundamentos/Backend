@@ -1,0 +1,22 @@
+package com.frigora.frigoraplatform.feedback.interfaces.rest.resources;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record ReviewResource(
+
+        @Schema(description = "Identificador único asignado automáticamente a la reseña en el sistema", example = "1")
+        int id,
+
+        @Schema(description = "Identificador único de la solicitud de servicio asociada", example = "101")
+        int serviceRequestId,
+
+        @Schema(description = "Identificador del técnico que ejecutó el servicio", example = "15")
+        int technicianId,
+
+        @Schema(description = "Calificación final asignada al servicio, típicamente de 1 a 5", example = "5")
+        int rating,
+
+        @Schema(description = "Comentarios detallados sobre el trabajo de refrigeración", example = "El equipo quedó enfriando perfectamente, excelente servicio.")
+        String comment
+) {
+}
