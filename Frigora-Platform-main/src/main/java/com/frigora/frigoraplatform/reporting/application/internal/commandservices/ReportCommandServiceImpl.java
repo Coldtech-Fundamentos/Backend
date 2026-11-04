@@ -32,15 +32,14 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     @Override
     @Transactional
     public Optional<Report> handle(UpdateReportCommand command) {
-        var result = reportRepository.findById(command.id());
+        var result = reportRepository.findByIdAndTenantId(command.id(), command.tenantId());
         if (result.isEmpty()) {
-            throw new IllegalArgumentException("El reporte con ID " + command.id() + " no existe.");
+            return Optional.empty();
         }
 
         var report = result.get();
         // El método de actualizaciÃ³n que definimos en el Aggregate
         report.updateReport(
-                command.tenantId(),
                 command.equipmentId(),
                 command.title(),
                 command.status(),
@@ -55,11 +54,12 @@ public class ReportCommandServiceImpl implements ReportCommandService {
 
     @Override
     @Transactional
-    public void handle(DeleteReportCommand command) {
-        var result = reportRepository.findById(command.reportId());
+    public boolean handle(DeleteReportCommand command) {
+        var result = reportRepository.findByIdAndTenantId(command.reportId(), command.tenantId());
         if (result.isEmpty()) {
-            throw new IllegalArgumentException("El reporte con ID " + command.reportId() + " no existe.");
+            return false;
         }
         reportRepository.delete(result.get());
+        return true;
     }
 }

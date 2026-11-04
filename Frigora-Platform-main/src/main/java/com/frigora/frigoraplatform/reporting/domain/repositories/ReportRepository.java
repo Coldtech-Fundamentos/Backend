@@ -12,10 +12,10 @@ public interface ReportRepository {
     void delete(Report report);
 
     // Metodos de lectura
-    Optional<Report> findById(Integer id);
+    Optional<Report> findByIdAndTenantId(Integer id, Integer tenantId);
     List<Report> findAll();
     List<Report> findAllByTenantId(Integer tenantId);
-    List<Report> findAllByEquipmentId(Integer equipmentId);
+    List<Report> findAllByEquipmentIdAndTenantId(Integer equipmentId, Integer tenantId);
 
     boolean existsById(Integer id);
 }

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface JpaReportRepository extends JpaRepository<Report, Integer> {
@@ -13,5 +14,7 @@ public interface JpaReportRepository extends JpaRepository<Report, Integer> {
     List<Report> findAllByTenantId(Integer tenantId);
 
     // Spring Data JPA crea la query "SELECT * FROM reports WHERE equipment_id = ?" automaticamente
-    List<Report> findAllByEquipmentId(Integer equipmentId);
+    List<Report> findAllByEquipmentIdAndTenantId(Integer equipmentId, Integer tenantId);
+
+    Optional<Report> findByIdAndTenantId(Integer id, Integer tenantId);
 }

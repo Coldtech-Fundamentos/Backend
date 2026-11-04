@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface ReportCommandService {
     Optional<Report> handle(CreateReportCommand command);
     Optional<Report> handle(UpdateReportCommand command);
-    void handle(DeleteReportCommand command);
+    boolean handle(DeleteReportCommand command);
 }

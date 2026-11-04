@@ -1,3 +1,3 @@
 package com.frigora.frigoraplatform.reporting.domain.model.commands;
 
-public record DeleteReportCommand(Integer reportId) {}
+public record DeleteReportCommand(Integer reportId, Integer tenantId) {}

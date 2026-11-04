@@ -13,15 +13,13 @@ import com.frigora.frigoraplatform.reporting.interfaces.rest.resources.UpdateRep
 import com.frigora.frigoraplatform.reporting.interfaces.rest.transform.CreateReportCommandFromResourceAssembler;
 import com.frigora.frigoraplatform.reporting.interfaces.rest.transform.ReportResourceFromEntityAssembler;
 import com.frigora.frigoraplatform.reporting.interfaces.rest.transform.UpdateReportCommandFromResourceAssembler;
-import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
-import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
-import com.frigora.frigoraplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,25 +33,11 @@ public class ReportController {
 
     private final ReportCommandService reportCommandService;
     private final ReportQueryService reportQueryService;
-    private final BearerTokenService tokenService;
-    private final UserRepository userRepository;
 
     public ReportController(ReportCommandService reportCommandService,
-                            ReportQueryService reportQueryService,
-                            BearerTokenService tokenService,
-                            UserRepository userRepository) {
+                            ReportQueryService reportQueryService) {
         this.reportCommandService = reportCommandService;
         this.reportQueryService = reportQueryService;
-        this.tokenService = tokenService;
-        this.userRepository = userRepository;
-    }
-
-    private Integer extractUserId(HttpServletRequest request) {
-        String token = tokenService.getBearerTokenFrom(request);
-        String username = tokenService.getUsernameFromToken(token);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
-        return user.getId();
     }
 
     @PostMapping
@@ -64,9 +48,9 @@ public class ReportController {
     })
     public ResponseEntity<ReportResource> createReport(
             @RequestBody CreateReportResource resource,
-            HttpServletRequest request) {
+            Authentication authentication) {
 
-        Integer ownerId = extractUserId(request);
+        Integer ownerId = AuthenticatedUser.requireUserId(authentication);
 
         var command = CreateReportCommandFromResourceAssembler.toCommandFromResource(resource, ownerId);
 
@@ -85,8 +69,9 @@ public class ReportController {
     })
     public ResponseEntity<ReportResource> getReportById(
             @Parameter(description = "Identificador único del reporte", required = true)
-            @PathVariable Integer reportId) {
-        var report = reportQueryService.handle(new GetReportByIdQuery(reportId));
+            @PathVariable Integer reportId, Authentication authentication) {
+        int ownerId = AuthenticatedUser.requireUserId(authentication);
+        var report = reportQueryService.handle(new GetReportByIdQuery(reportId, ownerId));
         if (report.isEmpty()) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(ReportResourceFromEntityAssembler.toResourceFromEntity(report.get()));
     }
@@ -97,13 +82,13 @@ public class ReportController {
     public ResponseEntity<List<ReportResource>> getAllReports(
             @Parameter(description = "Filtro opcional por equipment ID")
             @RequestParam(required = false) Integer equipmentId,
-            HttpServletRequest request) {  // ← MODIFICADO
+            Authentication authentication) {
 
-        Integer ownerId = extractUserId(request);
+        Integer ownerId = AuthenticatedUser.requireUserId(authentication);
 
         List<Report> reports =
                 equipmentId != null
-                        ? reportQueryService.handle(new GetAllReportsByEquipmentIdQuery(equipmentId))
+                        ? reportQueryService.handle(new GetAllReportsByEquipmentIdQuery(equipmentId, ownerId))
                         : reportQueryService.handle(new GetAllReportsByTenantIdQuery(ownerId));
 
         var reportResources = reports.stream()
@@ -123,11 +108,11 @@ public class ReportController {
             @Parameter(description = "Identificador único del reporte", required = true)
             @PathVariable Integer reportId,
             @RequestBody UpdateReportResource resource,
-            HttpServletRequest request) {
-        Integer ownerId = extractUserId(request);
+            Authentication authentication) {
+        Integer ownerId = AuthenticatedUser.requireUserId(authentication);
         var command = UpdateReportCommandFromResourceAssembler.toCommandFromResource(reportId, resource, ownerId);
         var report = reportCommandService.handle(command);
-        if (report.isEmpty()) return ResponseEntity.badRequest().build();
+        if (report.isEmpty()) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(ReportResourceFromEntityAssembler.toResourceFromEntity(report.get()));
     }
 
@@ -136,8 +121,11 @@ public class ReportController {
     @ApiResponse(responseCode = "200", description = "Reporte eliminado exitosamente.")
     public ResponseEntity<?> deleteReport(
             @Parameter(description = "Identificador único del reporte", required = true)
-            @PathVariable Integer reportId) {
-        reportCommandService.handle(new DeleteReportCommand(reportId));
+            @PathVariable Integer reportId, Authentication authentication) {
+        int ownerId = AuthenticatedUser.requireUserId(authentication);
+        if (!reportCommandService.handle(new DeleteReportCommand(reportId, ownerId))) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok().build();
     }
 }
