@@ -58,10 +58,11 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
             if (token != null && tokenService.validateToken(token)) {
 
                 String username = tokenService.getUsernameFromToken(token);
+                Integer userId = tokenService.getUserIdFromToken(token);
 
                 var userDetails = userDetailsService.loadUserByUsername(username);
 
-                var auth = UsernamePasswordAuthenticationTokenBuilder.build(userDetails, request);
+                var auth = UsernamePasswordAuthenticationTokenBuilder.build(userDetails, request, userId);
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }

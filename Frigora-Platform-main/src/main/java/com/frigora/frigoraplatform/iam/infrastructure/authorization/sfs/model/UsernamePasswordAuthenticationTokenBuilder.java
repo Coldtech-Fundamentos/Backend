@@ -11,6 +11,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
  */
 public class UsernamePasswordAuthenticationTokenBuilder {
 
+    public static UsernamePasswordAuthenticationToken build(UserDetails principal, HttpServletRequest request,
+                                                            Integer validatedUserId) {
+        return build(UserDetailsImpl.withValidatedUserId(principal, validatedUserId), request);
+    }
+
     /**
      * This method is responsible for building the UsernamePasswordAuthenticationToken object.
      * @param principal The user details.

@@ -7,6 +7,9 @@ import org.springframework.security.core.Authentication;
 
 public interface BearerTokenService extends TokenService {
 
+    /** Verifies signature and expiration; returns null only when userId is absent. */
+    Integer getUserIdFromToken(String token);
+
     /**
      * This method is responsible for extracting the JWT token from the HTTP request.
      * @param token the HTTP request

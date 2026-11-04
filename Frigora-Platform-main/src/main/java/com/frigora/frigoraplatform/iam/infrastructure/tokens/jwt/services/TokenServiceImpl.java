@@ -96,6 +96,21 @@ public class TokenServiceImpl implements BearerTokenService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    @Override
+    public Integer getUserIdFromToken(String token) {
+        var claims = extractAllClaims(token);
+        if (!claims.containsKey("userId")) {
+            return null;
+        }
+        Object value = claims.get("userId");
+        if ((value instanceof Integer || value instanceof Long)
+                && ((Number) value).longValue() > 0
+                && ((Number) value).longValue() <= Integer.MAX_VALUE) {
+            return ((Number) value).intValue();
+        }
+        throw new IllegalArgumentException("Invalid userId claim");
+    }
+
     /**
      * This method validates a JWT token
      * @param token the token
