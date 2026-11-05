@@ -6,6 +6,7 @@ import com.frigora.frigoraplatform.reporting.domain.model.commands.DeleteReportC
 import com.frigora.frigoraplatform.reporting.domain.model.commands.UpdateReportCommand;
 import com.frigora.frigoraplatform.reporting.domain.repositories.ReportRepository;
 import com.frigora.frigoraplatform.reporting.domain.services.ReportCommandService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +17,6 @@ public class ReportCommandServiceImpl implements ReportCommandService {
 
     private final ReportRepository reportRepository;
 
-    // Inyección de dependencias por constructor
     public ReportCommandServiceImpl(ReportRepository reportRepository) {
         this.reportRepository = reportRepository;
     }
@@ -38,15 +38,14 @@ public class ReportCommandServiceImpl implements ReportCommandService {
         }
 
         var report = result.get();
-        // El método de actualizaciÃ³n que definimos en el Aggregate
+
         report.updateReport(
                 command.equipmentId(),
                 command.title(),
                 command.status(),
                 command.summary(),
                 command.content(),
-                command.url()
-        );
+                command.url());
 
         reportRepository.save(report);
         return Optional.of(report);

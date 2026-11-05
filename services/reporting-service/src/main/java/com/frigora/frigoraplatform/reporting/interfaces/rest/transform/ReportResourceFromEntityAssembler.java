@@ -1,6 +1,5 @@
 package com.frigora.frigoraplatform.reporting.interfaces.rest.transform;
 
-
 import com.frigora.frigoraplatform.reporting.domain.model.aggregates.Report;
 import com.frigora.frigoraplatform.reporting.interfaces.rest.resources.ReportResource;
 
@@ -15,7 +14,6 @@ public class ReportResourceFromEntityAssembler {
                 entity.getStatus(),
                 entity.getSummary(),
                 entity.getContent(),
-                entity.getUrl()
-        );
+                entity.getUrl());
     }
 }

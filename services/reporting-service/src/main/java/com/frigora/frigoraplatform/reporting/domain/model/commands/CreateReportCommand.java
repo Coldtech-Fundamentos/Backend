@@ -1,6 +1,5 @@
 package com.frigora.frigoraplatform.reporting.domain.model.commands;
 
-
 import com.frigora.frigoraplatform.reporting.domain.model.valueobjects.EReportType;
 
 public record CreateReportCommand(
@@ -10,5 +9,4 @@ public record CreateReportCommand(
         String title,
         String summary,
         String content,
-        String url
-) {}
+        String url) {}

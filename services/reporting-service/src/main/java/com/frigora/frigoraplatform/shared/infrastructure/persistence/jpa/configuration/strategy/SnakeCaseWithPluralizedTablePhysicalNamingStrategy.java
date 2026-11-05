@@ -1,21 +1,28 @@
 package com.frigora.frigoraplatform.shared.infrastructure.persistence.jpa.configuration.strategy;
 
+import static io.github.encryptorcode.pluralize.Pluralize.pluralize;
+
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
-import static io.github.encryptorcode.pluralize.Pluralize.pluralize;
+
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Snake Case With Pluralized Table Physical Naming Strategy
- * @summary
- * PhysicalNamingStrategy implementation that converts entity names to snake_case and table names to pluralized snake_case.
  *
+ * @summary PhysicalNamingStrategy implementation that converts entity names to snake_case and table
+ *     names to pluralized snake_case.
  * @since 1.0.0
  */
 public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements PhysicalNamingStrategy {
+    private static final Pattern CAMEL_CASE = Pattern.compile("([a-z])([A-Z])");
+
     @Override
-    public Identifier toPhysicalCatalogName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
-        return null;
+    public Identifier toPhysicalCatalogName(
+            Identifier identifier, JdbcEnvironment jdbcEnvironment) {
+        return identifier;
     }
 
     @Override
@@ -29,7 +36,8 @@ public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements Physi
     }
 
     @Override
-    public Identifier toPhysicalSequenceName(Identifier identifier, JdbcEnvironment jdbcEnvironment) {
+    public Identifier toPhysicalSequenceName(
+            Identifier identifier, JdbcEnvironment jdbcEnvironment) {
         return this.toSnakeCase(identifier);
     }
 
@@ -40,6 +48,7 @@ public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements Physi
 
     /**
      * Convert identifier to snake case
+     *
      * @param identifier Identifier
      * @return Identifier
      */
@@ -47,21 +56,25 @@ public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements Physi
         if (identifier == null) {
             return null;
         }
-        final String regex = "([a-z])([A-Z])";
-        final String replacement = "$1_$2";
-        final String newName = identifier.getText()
-                .replaceAll(regex, replacement)
-                .toLowerCase();
-        return Identifier.toIdentifier(newName);
+        final String newName =
+                CAMEL_CASE
+                        .matcher(identifier.getText())
+                        .replaceAll("$1_$2")
+                        .toLowerCase(Locale.ROOT);
+        return Identifier.toIdentifier(newName, identifier.isQuoted());
     }
 
     /**
      * Convert identifier to plural
+     *
      * @param identifier Identifier
      * @return Identifier
      */
     private Identifier toPlural(final Identifier identifier) {
+        if (identifier == null) {
+            return null;
+        }
         final String newName = pluralize(identifier.getText());
-        return Identifier.toIdentifier(newName);
+        return Identifier.toIdentifier(newName, identifier.isQuoted());
     }
 }

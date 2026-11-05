@@ -72,10 +72,10 @@ Auditing is enabled only in this copy through `AuditingEntityListener` and a UTC
 - Run and validate Flyway V1 against real local MySQL and compare it with the original DDL.
 - Plan data copying, write cutover, and rollback before routing real traffic.
 - Share the key through a secrets channel and plan its rotation; HMAC currently shares a signing key with the issuer, with a future move to public-key signing left for later.
-- Define Gateway routing, CORS, and runtime OpenAPI documentation.
+- Validate the existing Gateway routes and CORS with real services, then add runtime OpenAPI documentation if needed.
 - Renew old sessions that lack `userId`.
 
-Creating this project does not change traffic routing or deploy a service.
+The Gateway routes report requests to this service. Deployment and migration of existing data remain separate steps.
 
 ## Prepare local MySQL (Stage 3.1)
 
@@ -103,3 +103,9 @@ V1 uses signed INT identifiers, VARCHAR(255) for text without an explicit length
 The monolith's actual DDL was not inspected. MySQL version, effective types and lengths, nullability, ENUM values and order, timestamp precision, charset/collation, indexes, defaults, and existing constraints still need comparison. This migration is for a new database, not for modifying or adopting the old table.
 
 Existing H2 HTTP tests disable Flyway and create their schema in memory. `ReportMigrationTests` runs V1 with Flyway against a separate H2 database in MySQL mode, checks migration history and repeatability, and rejects implicit baselining. This locally checks the script; it does not validate MySQL or the original DDL.
+
+## Request validation and implementation conventions
+
+Create requests require a report type, a positive equipment ID, and a nonblank title. Update requests also require a status. Titles, summaries, and URLs are limited to 255 characters to match the schema; invalid request bodies return 400 before persistence. Summary, content, and URL remain optional. JSON field names, enum labels, and successful response statuses are preserved.
+
+The immutable JWT parser is built once per filter instance. The Bearer scheme is case-insensitive; invalid credentials return 401 with a Bearer challenge. Identity and owner isolation are still enforced locally. Java conventions are defined in the root CONTRIBUTING.md.
