@@ -3,7 +3,7 @@
 Independent Maven project using Spring Boot 4.0.6, Java 21, and port 8085. The monolith remains at the application root with its original POM and routes. There is no Maven aggregator or project dependency between the monolith and this service.
 
 ~~~text
-Frigora-Platform-main/
+Backend/
 ├── pom.xml, mvnw, mvnw.cmd, src/   # Monolith, unchanged
 └── services/reporting-service/
     ├── pom.xml

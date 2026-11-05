@@ -4,13 +4,13 @@ Thank you for contributing to Frigora Platform. This guide describes the develop
 
 ## Development setup
 
-Use JDK 21 and the Maven Wrapper in `Frigora-Platform-main`. The monolith, API Gateway, and Reporting Service are independent Maven projects; there is no root aggregator POM.
+Use JDK 21 and the Maven Wrapper at the repository root. The root POM builds the monolith; the API Gateway and Reporting Service are independent Maven projects and are not included in the root POM.
 
-From the `Frigora-Platform-main` directory, run checks for the module you change:
+From the repository root, run checks for the module you change:
 
 ~~~powershell
-.\mvnw.cmd -f services\api-gateway\pom.xml test
-.\mvnw.cmd -f services\reporting-service\pom.xml test
+./mvnw.cmd -f services/api-gateway/pom.xml test
+./mvnw.cmd -f services/reporting-service/pom.xml test
 ~~~
 
 The monolith may require a database configuration for its tests. Review the active profile and test properties before running it.

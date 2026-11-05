@@ -6,16 +6,16 @@
 [![Maven](https://img.shields.io/badge/Maven-Wrapper-C71A36?logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
 
-Backend for Frigora, a refrigeration monitoring and maintenance platform. This repository contains the original Spring Boot monolith, an independent Reporting Service, and an API Gateway. The migration to microservices is in progress.
+Backend for Frigora, a refrigeration monitoring and maintenance platform. The root Maven project is the original monolith. The API Gateway and Reporting Service are independent Maven projects under `services/`. The migration to microservices is in progress.
 
 ## Run locally
 
-Install JDK 21 and Git. Then clone the repository and run the Gateway from the application directory:
+Install JDK 21 and Git. Clone the repository and start the Gateway from the repository root:
 
 ~~~powershell
 git clone --branch develop https://github.com/Coldtech-Fundamentos/Backend.git Backend
-cd Backend\Frigora-Platform-main
-.\mvnw.cmd -f services\api-gateway\pom.xml spring-boot:run
+cd Backend
+./mvnw.cmd -f services/api-gateway/pom.xml spring-boot:run
 ~~~
 
 The Gateway listens on `http://localhost:8080`. It routes `/api/v1/reports/**` to Reporting Service on port 8085 and other `/api/**` requests to the monolith on port 8081. The upstream services must be running to process requests.
@@ -29,11 +29,14 @@ Backend/
 ├── README.md
 ├── CONTRIBUTING.md
 ├── AGENTS.md
-└── Frigora-Platform-main/
-    ├── pom.xml
-    └── services/
-        ├── api-gateway/
-        └── reporting-service/
+├── .editorconfig
+├── .gitignore
+├── pom.xml                 # Monolith
+├── mvnw / mvnw.cmd
+├── src/                    # Monolith source
+└── services/
+    ├── api-gateway/
+    └── reporting-service/
 ~~~
 
 ## Contributing
