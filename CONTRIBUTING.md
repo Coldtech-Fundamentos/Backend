@@ -15,6 +15,16 @@ From the repository root, run checks for the module you change:
 
 The monolith may require a database configuration for its tests. Review the active profile and test properties before running it.
 
+Each independent service requires its own `pom.xml`; these files are source configuration, not generated output. Maven recreates `target/` when building or testing, and Git ignores it throughout the repository.
+
+| Application | POM | Local configuration |
+| --- | --- | --- |
+| Monolith | `pom.xml` | Set `PORT=8081`, an authorized local test datasource, `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, and `AUTHORIZATION_JWT_SECRET` |
+| API Gateway | `services/api-gateway/pom.xml` | Port 8080; optional `MONOLITH_URL`, `REPORTING_SERVICE_URL`, and `ANGULAR_ORIGIN` default to localhost ports 8081, 8085, and 4200 |
+| Reporting Service | `services/reporting-service/pom.xml` | Port 8085; requires `REPORTING_DB_USERNAME`, `REPORTING_DB_PASSWORD`, and `REPORTING_JWT_SECRET`; optional host and port default to localhost:3306 |
+
+Reporting uses only the separate `frigora_reporting_db` database. Flyway initializes an empty schema and Hibernate validates it. Supply the same test HMAC key as the IAM issuer externally. Its automated tests use H2 and do not establish real MySQL compatibility. Gateway tests use temporary HTTP destinations; integration with the real services still requires an authorized local environment.
+
 ## Architecture and code
 
 - The migration is incremental. Contexts that have not been extracted remain in the monolith.

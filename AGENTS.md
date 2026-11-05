@@ -1,6 +1,6 @@
 # Agent Instructions
 
-These instructions apply to the entire repository. Read `README.md`, `CONTRIBUTING.md`, and the guide for the affected module before working. Read any more specific `AGENTS.md` files along the affected path.
+These instructions apply to the entire repository. Read the root `README.md` and `CONTRIBUTING.md` before working. Read any more specific `AGENTS.md` files along the affected path.
 
 - Before editing, check the current branch and working tree. Preserve existing changes.
 - Verify repository state, POMs, and configuration instead of assuming that a migration or integration has been completed.
