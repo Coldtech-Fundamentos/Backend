@@ -48,7 +48,7 @@ The monolith defaults to port 8080, so set its port to 8081 to avoid a conflict.
 
 The lower order value has priority. The Gateway does not strip or rewrite paths and does not retry automatically. It preserves `/api/v1`, HTTP methods, query strings, JSON bodies, and the Authorization header. Login and registration remain at `/api/v1/authentication/**` in the monolith. JWT validation remains the responsibility of each service.
 
-If Reporting is unavailable, requests are not sent to the old Reporting implementation in the monolith. Connection or DNS errors become **502 Bad Gateway**; timeouts become **504 Gateway Timeout**. HTTP responses from services, including 401 and 404, are forwarded unchanged. The connection timeout is two seconds and the response timeout is ten seconds.
+If Reporting is unavailable, requests are not sent to the old Reporting implementation in the monolith. Connection, DNS, and premature-disconnection errors become **502 Bad Gateway**; timeouts become **504 Gateway Timeout**. HTTP responses from services, including 401 and 404, are forwarded unchanged. The connection timeout is two seconds and the response timeout is ten seconds.
 
 ## CORS
 
@@ -66,7 +66,7 @@ The Gateway allows GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, with Author
 - A disconnected destination returns 502 without internal details or fallback to the monolith.
 - Destination 404 responses are preserved and paths outside `/api/**` are rejected.
 
-These tests do not verify the real services' business logic or authentication. A manual full-system check requires the monolith and Reporting to run with valid databases and tokens. The 504 timeout configuration is not simulated by this suite.
+These tests do not verify the real services' business logic or authentication. A manual full-system check requires the monolith and Reporting to run with valid databases and tokens. The suite also simulates slow responses and premature disconnections, verifying 504 and 502 without fallback. Unit tests cover connection timeouts, unrelated exceptions, and committed responses.
 
 ## Before connecting Angular
 
