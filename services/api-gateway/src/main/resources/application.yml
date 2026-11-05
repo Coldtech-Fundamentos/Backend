@@ -1,0 +1,38 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: api-gateway
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 2000
+            response-timeout: 10s
+          default-filters:
+            # The monolith also emits CORS headers; browsers require a single value.
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
+          routes:
+            - id: reporting
+              order: -10
+              uri: ${REPORTING_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/api/v1/reports,/api/v1/reports/**
+            - id: monolith
+              order: 0
+              uri: ${MONOLITH_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/**
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/api/**]':
+                allowedOrigins:
+                  - ${ANGULAR_ORIGIN:http://localhost:4200}
+                allowedMethods: [GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS]
+                allowedHeaders: [Authorization, Content-Type, Accept]
+                allowCredentials: true
+                maxAge: 3600
