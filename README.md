@@ -5,6 +5,7 @@
 [![Spring Cloud 2025.1.4](https://img.shields.io/badge/Spring_Cloud-2025.1.4-6DB33F?logo=spring&logoColor=white)](https://spring.io/projects/spring-cloud)
 [![Maven](https://img.shields.io/badge/Maven-Wrapper-C71A36?logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
 
 Backend for Frigora, a refrigeration monitoring and maintenance platform. The root Maven project is the original monolith. The API Gateway and Reporting Service are independent Maven projects under `services/`. The migration to microservices is in progress.
 
@@ -42,3 +43,7 @@ Backend/
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, architecture boundaries, Git Flow, commit messages, tests, and pull request guidance.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md).
