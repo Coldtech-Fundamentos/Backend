@@ -26,6 +26,17 @@ The monolith may require a database configuration for its tests. Review the acti
 - Keep controllers focused on HTTP, application services focused on orchestration, and business rules in the domain.
 - Update the relevant documentation when routes, configuration, contracts, or run instructions change.
 
+## Java conventions
+
+- Write identifiers, comments, messages, tests, and OpenAPI descriptions in English.
+- Use lowercase package names, PascalCase types, camelCase methods and variables, and UPPER_SNAKE_CASE constants. Name interfaces by their responsibility without an `I` prefix. Use `Impl` consistently for existing interface implementations.
+- Match public type names to filenames. Keep each bounded context organized into `domain`, `application`, `infrastructure`, and `interfaces` packages; keep REST controllers under `interfaces/rest`.
+- Use `//` for single-line comments and `/* ... */` for multiline implementation comments. Use multiline `/** ... */` Javadoc for API documentation. Explain constraints and intent; remove comments that merely repeat code and delete abandoned commented-out implementations.
+- Format Java using google-java-format 1.24.0 in AOSP mode (four-space indentation). Use UTF-8, braces for control flow, separate methods clearly, and prefer explicit imports. Follow `.editorconfig` for other files.
+- Prefer constructor injection and final dependencies. Keep mutable state scoped to the smallest possible lifetime. Reuse immutable, thread-safe infrastructure such as JWT parsers.
+- Validate request resources at the HTTP boundary. Keep authorization tied to verified identity and scope repository queries to the owner. Never accept an owner ID from an untrusted request body.
+- Preserve public routes, JSON property names, enum values, and persisted names during internal refactoring. Verify observable behavior with regression tests before committing optimizations.
+
 ## Data and secrets
 
 - Use only authorized local test databases and synthetic data for development.
