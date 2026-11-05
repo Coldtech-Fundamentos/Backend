@@ -4,12 +4,9 @@ import com.frigora.frigoraplatform.technicians.domain.model.commands.UpdateTechn
 import com.frigora.frigoraplatform.technicians.interfaces.rest.resources.UpdateTechnicianResource;
 
 public class UpdateTechnicianCommandFromResourceAssembler {
-    public static UpdateTechnicianCommand toCommandFromResource(Integer id, UpdateTechnicianResource resource) {
+    public static UpdateTechnicianCommand toCommandFromResource(
+            Integer id, UpdateTechnicianResource resource) {
         return new UpdateTechnicianCommand(
-                id,
-                resource.name(),
-                resource.specialty(),
-                resource.phone()
-        );
+                id, resource.name(), resource.specialty(), resource.phone());
     }
 }

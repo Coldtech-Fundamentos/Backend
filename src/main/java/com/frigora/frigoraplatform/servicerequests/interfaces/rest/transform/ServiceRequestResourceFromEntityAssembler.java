@@ -19,7 +19,6 @@ public class ServiceRequestResourceFromEntityAssembler {
                 entity.getStatus().getStatus(),
                 entity.getCompletedAt(),
                 entity.getCanceledAt(),
-                entity.getTechnicianId() != null ? entity.getTechnicianId().getValue() : null
-        );
+                entity.getTechnicianId() != null ? entity.getTechnicianId().getValue() : null);
     }
 }

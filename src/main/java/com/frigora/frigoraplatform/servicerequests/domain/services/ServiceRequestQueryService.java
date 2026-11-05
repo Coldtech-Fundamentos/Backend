@@ -10,6 +10,8 @@ import java.util.Optional;
 
 public interface ServiceRequestQueryService {
     Optional<ServiceRequest> handle(GetServiceRequestByIdQuery query);
+
     List<ServiceRequest> handle(GetServiceRequestsByRequesterIdQuery query);
+
     List<ServiceRequest> handle(GetServiceRequestsByProviderIdQuery query);
 }

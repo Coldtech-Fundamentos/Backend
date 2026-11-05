@@ -4,11 +4,10 @@ import com.frigora.frigoraplatform.iam.domain.model.valueobjects.Roles;
 
 /**
  * Get role by name query
- * <p>
- *     This class represents the query to get a role by its name.
- * </p>
+ *
+ * <p>This class represents the query to get a role by its name.
+ *
  * @param name the name of the role
  * @see Roles
  */
-public record GetRoleByNameQuery(Roles name) {
-}
+public record GetRoleByNameQuery(Roles name) {}

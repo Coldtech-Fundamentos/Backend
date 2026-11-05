@@ -4,9 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * Roles
- * <p>
- *     This enum represents the roles in the system.
- * </p>
+ *
+ * <p>This enum represents the roles in the system.
  */
 @JsonFormat(shape = JsonFormat.Shape.STRING)
 public enum Roles {

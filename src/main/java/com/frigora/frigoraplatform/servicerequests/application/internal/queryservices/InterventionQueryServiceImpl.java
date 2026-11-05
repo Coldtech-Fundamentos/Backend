@@ -5,7 +5,9 @@ import com.frigora.frigoraplatform.servicerequests.domain.model.queries.GetInter
 import com.frigora.frigoraplatform.servicerequests.domain.model.queries.GetInterventionsByServiceRequestIdQuery;
 import com.frigora.frigoraplatform.servicerequests.domain.services.InterventionQueryService;
 import com.frigora.frigoraplatform.servicerequests.infrastructure.persistence.jpa.repositories.InterventionRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

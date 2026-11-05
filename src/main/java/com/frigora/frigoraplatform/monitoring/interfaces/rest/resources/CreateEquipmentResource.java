@@ -1,8 +1,10 @@
 package com.frigora.frigoraplatform.monitoring.interfaces.rest.resources;
 
 import com.frigora.frigoraplatform.monitoring.domain.model.valueobjects.StatusEquipment;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,17 +18,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreateEquipmentResource {
 
-    @NotBlank
-    private String model;
+    @NotBlank private String model;
 
-    @NotBlank
-    private String type;
+    @NotBlank private String type;
 
-    @NotBlank
-    private String serial;
+    @NotBlank private String serial;
 
-    @NotNull
-    private StatusEquipment status;
+    @NotNull private StatusEquipment status;
 
     private LocalDateTime installed;
 
@@ -34,12 +32,9 @@ public class CreateEquipmentResource {
 
     private Float setPoint;
 
-    @NotBlank
-    private String name;
+    @NotBlank private String name;
 
-    @NotBlank
-    private String manufacturer;
+    @NotBlank private String manufacturer;
 
-    @NotNull
-    private Boolean online;
+    @NotNull private Boolean online;
 }

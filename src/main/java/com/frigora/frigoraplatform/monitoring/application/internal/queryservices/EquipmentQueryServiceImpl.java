@@ -6,7 +6,9 @@ import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetEquipmentB
 import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetEquipmentsByOwnerQuery;
 import com.frigora.frigoraplatform.monitoring.domain.repositories.EquipmentRepository;
 import com.frigora.frigoraplatform.monitoring.domain.services.EquipmentQueryService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,6 @@ public class EquipmentQueryServiceImpl implements EquipmentQueryService {
     @Override
     @Transactional(readOnly = true)
     public List<Equipment> getAllByOwner(GetEquipmentsByOwnerQuery query) {
-        return equipmentRepository.findByOwnerId(query.ownerId()); // ← AÑADIDO
+        return equipmentRepository.findByOwnerId(query.ownerId());
     }
 }

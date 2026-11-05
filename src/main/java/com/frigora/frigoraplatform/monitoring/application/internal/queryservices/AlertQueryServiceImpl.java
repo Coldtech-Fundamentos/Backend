@@ -7,7 +7,9 @@ import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetAllAlertsB
 import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetAllAlertsQuery;
 import com.frigora.frigoraplatform.monitoring.domain.repositories.AlertRepository;
 import com.frigora.frigoraplatform.monitoring.domain.services.AlertQueryService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

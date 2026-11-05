@@ -1,7 +1,9 @@
 package com.frigora.frigoraplatform.technicians.domain.model.aggregates;
 
 import com.frigora.frigoraplatform.technicians.domain.model.commands.CreateTechnicianCommand;
+
 import jakarta.persistence.*;
+
 import lombok.Getter;
 
 @Entity

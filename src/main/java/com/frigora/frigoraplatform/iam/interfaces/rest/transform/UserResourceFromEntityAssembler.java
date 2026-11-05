@@ -6,9 +6,6 @@ import com.frigora.frigoraplatform.iam.interfaces.rest.resources.UserResource;
 public class UserResourceFromEntityAssembler {
 
     public static UserResource toResourceFromEntity(User user) {
-        return new UserResource(
-                user.getId(),
-                user.getUsername()
-        );
+        return new UserResource(user.getId(), user.getUsername());
     }
 }

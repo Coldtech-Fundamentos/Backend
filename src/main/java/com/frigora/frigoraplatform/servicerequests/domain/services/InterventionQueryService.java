@@ -9,5 +9,6 @@ import java.util.Optional;
 
 public interface InterventionQueryService {
     Optional<Intervention> handle(GetInterventionByIdQuery query);
+
     List<Intervention> handle(GetInterventionsByServiceRequestIdQuery query);
 }

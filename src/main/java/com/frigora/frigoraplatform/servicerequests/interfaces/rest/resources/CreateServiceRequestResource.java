@@ -8,4 +8,4 @@ public record CreateServiceRequestResource(
         String origin,
         String type,
         String priority,
-        String description) { }
+        String description) {}

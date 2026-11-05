@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public interface TechnicianCommandService {
     Optional<Technician> handle(CreateTechnicianCommand command);
+
     Optional<Technician> handle(UpdateTechnicianCommand command);
+
     void handle(DeleteTechnicianCommand command);
 }

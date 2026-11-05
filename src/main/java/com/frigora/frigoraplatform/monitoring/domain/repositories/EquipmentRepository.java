@@ -7,9 +7,14 @@ import java.util.Optional;
 
 public interface EquipmentRepository {
     List<Equipment> findAll();
+
     Optional<Equipment> findById(Long id);
+
     Equipment save(Equipment equipment);
+
     void deleteById(Long id);
+
     boolean existsById(Long id);
+
     List<Equipment> findByOwnerId(Long ownerId);
 }

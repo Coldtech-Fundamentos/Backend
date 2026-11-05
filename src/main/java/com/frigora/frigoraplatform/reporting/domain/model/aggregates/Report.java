@@ -3,7 +3,9 @@ package com.frigora.frigoraplatform.reporting.domain.model.aggregates;
 import com.frigora.frigoraplatform.reporting.domain.model.commands.CreateReportCommand;
 import com.frigora.frigoraplatform.reporting.domain.model.valueobjects.EReportStatus;
 import com.frigora.frigoraplatform.reporting.domain.model.valueobjects.EReportType;
+
 import jakarta.persistence.*;
+
 import lombok.Getter;
 
 @Entity
@@ -34,13 +36,19 @@ public class Report {
 
     private String url;
 
-    @Embedded
-    private ReportAudit audit = new ReportAudit();
+    @Embedded private ReportAudit audit = new ReportAudit();
 
     protected Report() {}
 
-    public Report(Integer tenantId, EReportType type, Integer equipmentId, String title,
-                  EReportStatus status, String summary, String content, String url) {
+    public Report(
+            Integer tenantId,
+            EReportType type,
+            Integer equipmentId,
+            String title,
+            EReportStatus status,
+            String summary,
+            String content,
+            String url) {
         this.tenantId = tenantId;
         this.type = type;
         this.equipmentId = equipmentId;
@@ -62,8 +70,13 @@ public class Report {
         this.url = command.url();
     }
 
-    public void updateReport(Integer equipmentId, String title, EReportStatus status,
-                             String summary, String content, String url) {
+    public void updateReport(
+            Integer equipmentId,
+            String title,
+            EReportStatus status,
+            String summary,
+            String content,
+            String url) {
         this.equipmentId = equipmentId;
         this.title = title;
         this.status = status;

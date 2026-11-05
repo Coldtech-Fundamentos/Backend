@@ -6,6 +6,7 @@ import com.frigora.frigoraplatform.technicians.domain.model.commands.DeleteTechn
 import com.frigora.frigoraplatform.technicians.domain.model.commands.UpdateTechnicianCommand;
 import com.frigora.frigoraplatform.technicians.domain.repositories.TechnicianRepository;
 import com.frigora.frigoraplatform.technicians.domain.services.TechnicianCommandService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -29,10 +30,12 @@ public class TechnicianCommandServiceImpl implements TechnicianCommandService {
     @Override
     public Optional<Technician> handle(UpdateTechnicianCommand command) {
         var result = technicianRepository.findById(command.id());
-        if (result.isEmpty()) return Optional.empty();
+        if (result.isEmpty()) {
+            return Optional.empty();
+        }
 
         var technicianToUpdate = result.get();
-        // Ejecutamos el método update propio de tu entidad aggregate
+
         technicianToUpdate.update(command.name(), command.specialty(), command.phone());
         var updatedTechnician = technicianRepository.save(technicianToUpdate);
 
@@ -42,7 +45,7 @@ public class TechnicianCommandServiceImpl implements TechnicianCommandService {
     @Override
     public void handle(DeleteTechnicianCommand command) {
         var result = technicianRepository.findById(command.id());
-        // Si existe el técnico, lo elimina a través del repositorio
+
         result.ifPresent(technicianRepository::delete);
     }
 }

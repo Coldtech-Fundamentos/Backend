@@ -6,6 +6,7 @@ import com.frigora.frigoraplatform.technicians.domain.model.queries.GetTechnicia
 import com.frigora.frigoraplatform.technicians.domain.model.queries.GetTechniciansByProviderIdQuery;
 import com.frigora.frigoraplatform.technicians.domain.repositories.TechnicianRepository;
 import com.frigora.frigoraplatform.technicians.domain.services.TechnicianQueryService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;

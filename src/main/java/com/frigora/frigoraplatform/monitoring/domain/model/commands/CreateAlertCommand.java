@@ -10,6 +10,4 @@ public record CreateAlertCommand(
         String type,
         EAlertSeverity severity,
         String description,
-        EAlertStatus status
-) {
-}
+        EAlertStatus status) {}

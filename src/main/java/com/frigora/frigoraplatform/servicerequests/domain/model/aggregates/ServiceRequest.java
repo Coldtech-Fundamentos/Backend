@@ -2,7 +2,9 @@ package com.frigora.frigoraplatform.servicerequests.domain.model.aggregates;
 
 import com.frigora.frigoraplatform.servicerequests.domain.model.valueobjects.*;
 import com.frigora.frigoraplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+
 import jakarta.persistence.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,17 +36,14 @@ public class ServiceRequest extends AuditableAbstractAggregateRoot<ServiceReques
     @Column(name = "origin")
     private String origin;
 
-    @Embedded
-    private ServiceRequestType type;
+    @Embedded private ServiceRequestType type;
 
-    @Embedded
-    private ServiceRequestPriority priority;
+    @Embedded private ServiceRequestPriority priority;
 
     @Column(name = "description")
     private String description;
 
-    @Embedded
-    private ServiceRequestStatus status;
+    @Embedded private ServiceRequestStatus status;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
@@ -56,9 +55,15 @@ public class ServiceRequest extends AuditableAbstractAggregateRoot<ServiceReques
     @AttributeOverride(name = "value", column = @Column(name = "technician_id"))
     private TechnicianId technicianId;
 
-    public ServiceRequest(int requesterId, int siteId, int equipmentId, int assignedTo,
-                          String origin, ServiceRequestType.EServiceRequestType type, ServiceRequestPriority.EServiceRequestPriority priority,
-                          String description) {
+    public ServiceRequest(
+            int requesterId,
+            int siteId,
+            int equipmentId,
+            int assignedTo,
+            String origin,
+            ServiceRequestType.EServiceRequestType type,
+            ServiceRequestPriority.EServiceRequestPriority priority,
+            String description) {
         this.requesterId = new RequesterId(requesterId);
         this.siteId = new SiteId(siteId);
         this.equipmentId = new EquipmentId(equipmentId);
@@ -86,11 +91,13 @@ public class ServiceRequest extends AuditableAbstractAggregateRoot<ServiceReques
 
     public void assignTechnician(int technicianId) {
         this.technicianId = new TechnicianId(technicianId);
-        this.status = new ServiceRequestStatus(ServiceRequestStatus.EServiceRequestStatus.IN_PROGRESS);
+        this.status =
+                new ServiceRequestStatus(ServiceRequestStatus.EServiceRequestStatus.IN_PROGRESS);
     }
 
     public void complete() {
-        this.status = new ServiceRequestStatus(ServiceRequestStatus.EServiceRequestStatus.COMPLETED);
+        this.status =
+                new ServiceRequestStatus(ServiceRequestStatus.EServiceRequestStatus.COMPLETED);
         this.completedAt = LocalDateTime.now(Clock.systemUTC());
     }
 }

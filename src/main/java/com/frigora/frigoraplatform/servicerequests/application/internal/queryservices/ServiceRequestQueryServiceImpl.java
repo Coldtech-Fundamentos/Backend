@@ -6,7 +6,9 @@ import com.frigora.frigoraplatform.servicerequests.domain.model.queries.GetServi
 import com.frigora.frigoraplatform.servicerequests.domain.model.queries.GetServiceRequestsByRequesterIdQuery;
 import com.frigora.frigoraplatform.servicerequests.domain.services.ServiceRequestQueryService;
 import com.frigora.frigoraplatform.servicerequests.infrastructure.persistence.jpa.repositories.ServiceRequestRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,9 +34,7 @@ public class ServiceRequestQueryServiceImpl implements ServiceRequestQueryServic
     public List<ServiceRequest> handle(GetServiceRequestsByProviderIdQuery query) {
         if (query.status() != null) {
             return serviceRequestRepository.findByAssignedToValueAndStatusStatus(
-                    query.providerId(),
-                    query.status()
-            );
+                    query.providerId(), query.status());
         }
         return serviceRequestRepository.findByAssignedToValue(query.providerId());
     }

@@ -5,14 +5,12 @@ import com.frigora.frigoraplatform.feedback.interfaces.rest.resources.CreateRevi
 
 public class CreateReviewCommandFromResourceAssembler {
 
-    public static CreateReviewCommand toCommandFromResource(
-            CreateReviewResource resource) {
+    public static CreateReviewCommand toCommandFromResource(CreateReviewResource resource) {
 
         return new CreateReviewCommand(
                 resource.serviceRequestId(),
                 resource.technicianId(),
                 resource.rating(),
-                resource.comment()
-        );
+                resource.comment());
     }
 }

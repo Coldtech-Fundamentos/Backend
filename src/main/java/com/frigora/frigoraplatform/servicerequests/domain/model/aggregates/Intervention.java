@@ -4,7 +4,9 @@ import com.frigora.frigoraplatform.servicerequests.domain.model.valueobjects.Int
 import com.frigora.frigoraplatform.servicerequests.domain.model.valueobjects.ServiceRequestId;
 import com.frigora.frigoraplatform.servicerequests.domain.model.valueobjects.TechnicianId;
 import com.frigora.frigoraplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+
 import jakarta.persistence.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -40,18 +42,28 @@ public class Intervention extends AuditableAbstractAggregateRoot<Intervention> {
     private LocalDateTime endTime;
 
     @ElementCollection
-    @CollectionTable(name = "intervention_photos", joinColumns = @JoinColumn(name = "intervention_id"))
+    @CollectionTable(
+            name = "intervention_photos",
+            joinColumns = @JoinColumn(name = "intervention_id"))
     @Column(name = "photo_url")
     private List<String> photoUrls = new ArrayList<>();
 
-    public Intervention(int serviceRequestId, int technicianId, String summary,
-                        LocalDateTime startTime, LocalDateTime endTime, List<String> photoUrls) {
+    public Intervention(
+            int serviceRequestId,
+            int technicianId,
+            String summary,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            List<String> photoUrls) {
         this.serviceRequestId = new ServiceRequestId(serviceRequestId);
         this.technicianId = new TechnicianId(technicianId);
         this.summary = summary;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.status = (endTime != null) ? InterventionStatus.EInterventionStatus.COMPLETED : InterventionStatus.EInterventionStatus.PENDING;
+        this.status =
+                (endTime != null)
+                        ? InterventionStatus.EInterventionStatus.COMPLETED
+                        : InterventionStatus.EInterventionStatus.PENDING;
         this.photoUrls = photoUrls != null ? photoUrls : new ArrayList<>();
     }
 }

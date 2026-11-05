@@ -2,6 +2,7 @@ package com.frigora.frigoraplatform.monitoring.interfaces.rest.transform;
 
 import com.frigora.frigoraplatform.monitoring.domain.model.aggregates.Alert;
 import com.frigora.frigoraplatform.monitoring.interfaces.rest.resources.AlertResource;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,8 +20,7 @@ public class AlertResourceFromEntityAssembler {
                 alert.getSeverity(),
                 alert.getDescription(),
                 alert.getStatus(),
-                alert.getCreatedAt()
-        );
+                alert.getCreatedAt());
     }
 
     public List<AlertResource> toResources(List<Alert> alerts) {

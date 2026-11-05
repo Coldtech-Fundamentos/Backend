@@ -2,6 +2,7 @@ package com.frigora.frigoraplatform.monitoring.infrastructure.persistence.jpa.re
 
 import com.frigora.frigoraplatform.monitoring.domain.model.aggregates.Alert;
 import com.frigora.frigoraplatform.monitoring.domain.repositories.AlertRepository;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

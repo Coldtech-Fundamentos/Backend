@@ -7,6 +7,7 @@ import com.frigora.frigoraplatform.reporting.domain.model.queries.GetAllReportsQ
 import com.frigora.frigoraplatform.reporting.domain.model.queries.GetReportByIdQuery;
 import com.frigora.frigoraplatform.reporting.domain.repositories.ReportRepository;
 import com.frigora.frigoraplatform.reporting.domain.services.ReportQueryService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class ReportQueryServiceImpl implements ReportQueryService {
     @Override
     @Transactional(readOnly = true)
     public List<Report> handle(GetAllReportsByEquipmentIdQuery query) {
-        return reportRepository.findAllByEquipmentIdAndTenantId(query.equipmentId(), query.tenantId());
+        return reportRepository.findAllByEquipmentIdAndTenantId(
+                query.equipmentId(), query.tenantId());
     }
 }

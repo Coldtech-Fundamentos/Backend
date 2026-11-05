@@ -1,6 +1,7 @@
 package com.frigora.frigoraplatform.technicians.infrastructure.persistence.jpa.repositories;
 
 import com.frigora.frigoraplatform.technicians.domain.model.aggregates.Technician;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

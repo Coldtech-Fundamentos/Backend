@@ -6,7 +6,9 @@ import com.frigora.frigoraplatform.feedback.domain.model.queries.GetReviewByIdQu
 import com.frigora.frigoraplatform.feedback.domain.model.queries.GetReviewsByServiceRequestIdQuery;
 import com.frigora.frigoraplatform.feedback.domain.services.ReviewQueryService;
 import com.frigora.frigoraplatform.feedback.infrastructure.persistence.jpa.repositories.ReviewRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,9 +27,7 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 
     @Override
     public List<Review> handle(GetReviewsByServiceRequestIdQuery query) {
-        return reviewRepository.findByServiceRequestIdValue(
-                query.serviceRequestId()
-        );
+        return reviewRepository.findByServiceRequestIdValue(query.serviceRequestId());
     }
 
     @Override

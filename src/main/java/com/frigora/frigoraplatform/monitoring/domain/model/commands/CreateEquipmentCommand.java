@@ -15,5 +15,4 @@ public record CreateEquipmentCommand(
         String name,
         String manufacturer,
         Boolean online,
-        Long ownerId
-) {}
+        Long ownerId) {}

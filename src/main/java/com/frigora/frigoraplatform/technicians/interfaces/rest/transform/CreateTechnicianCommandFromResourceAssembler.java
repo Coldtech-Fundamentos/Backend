@@ -6,10 +6,6 @@ import com.frigora.frigoraplatform.technicians.interfaces.rest.resources.CreateT
 public class CreateTechnicianCommandFromResourceAssembler {
     public static CreateTechnicianCommand toCommandFromResource(CreateTechnicianResource resource) {
         return new CreateTechnicianCommand(
-                resource.name(),
-                resource.specialty(),
-                resource.phone(),
-                resource.providerId()
-        );
+                resource.name(), resource.specialty(), resource.phone(), resource.providerId());
     }
 }

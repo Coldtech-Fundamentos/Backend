@@ -14,114 +14,130 @@ import com.frigora.frigoraplatform.reporting.interfaces.rest.transform.CreateRep
 import com.frigora.frigoraplatform.reporting.interfaces.rest.transform.ReportResourceFromEntityAssembler;
 import com.frigora.frigoraplatform.reporting.interfaces.rest.transform.UpdateReportCommandFromResourceAssembler;
 import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedUser;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.core.Authentication;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/reports")
-@Tag(name = "Reporting", description = "Available reporting endpoints / Endpoints para la gestión de reportes")
+@Tag(name = "Reporting", description = "Available reporting endpoints")
 public class ReportController {
 
     private final ReportCommandService reportCommandService;
     private final ReportQueryService reportQueryService;
 
-    public ReportController(ReportCommandService reportCommandService,
-                            ReportQueryService reportQueryService) {
+    public ReportController(
+            ReportCommandService reportCommandService, ReportQueryService reportQueryService) {
         this.reportCommandService = reportCommandService;
         this.reportQueryService = reportQueryService;
     }
 
     @PostMapping
-    @Operation(summary = "Crear un nuevo reporte")
+    @Operation(summary = "Create a report")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Reporte creado exitosamente."),
-            @ApiResponse(responseCode = "400", description = "Error de validación o datos incompletos.")
+        @ApiResponse(responseCode = "201", description = "Report created successfully."),
+        @ApiResponse(responseCode = "400", description = "Invalid or incomplete report data.")
     })
     public ResponseEntity<ReportResource> createReport(
-            @RequestBody CreateReportResource resource,
-            Authentication authentication) {
+            @RequestBody CreateReportResource resource, Authentication authentication) {
 
         Integer ownerId = AuthenticatedUser.requireUserId(authentication);
 
-        var command = CreateReportCommandFromResourceAssembler.toCommandFromResource(resource, ownerId);
+        var command =
+                CreateReportCommandFromResourceAssembler.toCommandFromResource(resource, ownerId);
 
         var report = reportCommandService.handle(command);
-        if (report.isEmpty()) return ResponseEntity.badRequest().build();
+        if (report.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
 
         var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(report.get());
         return new ResponseEntity<>(reportResource, HttpStatus.CREATED);
     }
 
     @GetMapping("/{reportId}")
-    @Operation(summary = "Obtener un reporte por ID")
+    @Operation(summary = "Get a report by ID")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Reporte encontrado."),
-            @ApiResponse(responseCode = "404", description = "Reporte no encontrado.")
+        @ApiResponse(responseCode = "200", description = "Report found."),
+        @ApiResponse(responseCode = "404", description = "Report not found.")
     })
     public ResponseEntity<ReportResource> getReportById(
-            @Parameter(description = "Identificador único del reporte", required = true)
-            @PathVariable Integer reportId, Authentication authentication) {
+            @Parameter(description = "Unique report identifier", required = true) @PathVariable
+                    Integer reportId,
+            Authentication authentication) {
         int ownerId = AuthenticatedUser.requireUserId(authentication);
         var report = reportQueryService.handle(new GetReportByIdQuery(reportId, ownerId));
-        if (report.isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(ReportResourceFromEntityAssembler.toResourceFromEntity(report.get()));
+        if (report.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(
+                ReportResourceFromEntityAssembler.toResourceFromEntity(report.get()));
     }
 
     @GetMapping
-    @Operation(summary = "Obtener todos los reportes del usuario actual")
-    @ApiResponse(responseCode = "200", description = "Lista de reportes recuperada exitosamente.")
+    @Operation(summary = "Get reports owned by the current user")
+    @ApiResponse(responseCode = "200", description = "Reports retrieved successfully.")
     public ResponseEntity<List<ReportResource>> getAllReports(
-            @Parameter(description = "Filtro opcional por equipment ID")
-            @RequestParam(required = false) Integer equipmentId,
+            @Parameter(description = "Optional equipment ID filter") @RequestParam(required = false)
+                    Integer equipmentId,
             Authentication authentication) {
 
         Integer ownerId = AuthenticatedUser.requireUserId(authentication);
 
         List<Report> reports =
                 equipmentId != null
-                        ? reportQueryService.handle(new GetAllReportsByEquipmentIdQuery(equipmentId, ownerId))
+                        ? reportQueryService.handle(
+                                new GetAllReportsByEquipmentIdQuery(equipmentId, ownerId))
                         : reportQueryService.handle(new GetAllReportsByTenantIdQuery(ownerId));
 
-        var reportResources = reports.stream()
-                .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
-                .toList();
+        var reportResources =
+                reports.stream()
+                        .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+                        .toList();
 
         return ResponseEntity.ok(reportResources);
     }
 
     @PutMapping("/{reportId}")
-    @Operation(summary = "Actualizar un reporte")
+    @Operation(summary = "Update a report")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Reporte actualizado exitosamente."),
-            @ApiResponse(responseCode = "400", description = "Error al actualizar.")
+        @ApiResponse(responseCode = "200", description = "Report updated successfully."),
+        @ApiResponse(responseCode = "400", description = "Invalid update data.")
     })
     public ResponseEntity<ReportResource> updateReport(
-            @Parameter(description = "Identificador único del reporte", required = true)
-            @PathVariable Integer reportId,
+            @Parameter(description = "Unique report identifier", required = true) @PathVariable
+                    Integer reportId,
             @RequestBody UpdateReportResource resource,
             Authentication authentication) {
         Integer ownerId = AuthenticatedUser.requireUserId(authentication);
-        var command = UpdateReportCommandFromResourceAssembler.toCommandFromResource(reportId, resource, ownerId);
+        var command =
+                UpdateReportCommandFromResourceAssembler.toCommandFromResource(
+                        reportId, resource, ownerId);
         var report = reportCommandService.handle(command);
-        if (report.isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(ReportResourceFromEntityAssembler.toResourceFromEntity(report.get()));
+        if (report.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(
+                ReportResourceFromEntityAssembler.toResourceFromEntity(report.get()));
     }
 
     @DeleteMapping("/{reportId}")
-    @Operation(summary = "Eliminar un reporte")
-    @ApiResponse(responseCode = "200", description = "Reporte eliminado exitosamente.")
+    @Operation(summary = "Delete a report")
+    @ApiResponse(responseCode = "200", description = "Report deleted successfully.")
     public ResponseEntity<?> deleteReport(
-            @Parameter(description = "Identificador único del reporte", required = true)
-            @PathVariable Integer reportId, Authentication authentication) {
+            @Parameter(description = "Unique report identifier", required = true) @PathVariable
+                    Integer reportId,
+            Authentication authentication) {
         int ownerId = AuthenticatedUser.requireUserId(authentication);
         if (!reportCommandService.handle(new DeleteReportCommand(reportId, ownerId))) {
             return ResponseEntity.notFound().build();

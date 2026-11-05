@@ -2,10 +2,12 @@ package com.frigora.frigoraplatform.reporting.domain.model.aggregates;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
+
 import lombok.Getter;
 import lombok.Setter;
+
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.OffsetDateTime;
 

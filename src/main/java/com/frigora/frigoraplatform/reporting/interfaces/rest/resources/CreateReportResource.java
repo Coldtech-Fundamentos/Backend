@@ -8,5 +8,4 @@ public record CreateReportResource(
         String title,
         String summary,
         String content,
-        String url
-) {}
+        String url) {}

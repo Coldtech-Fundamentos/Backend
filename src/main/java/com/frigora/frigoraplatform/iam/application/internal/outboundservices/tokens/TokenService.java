@@ -6,6 +6,7 @@ public interface TokenService {
 
     /**
      * Generates a JWT token for the specified user.
+     *
      * @param user The user for which to create the token.
      * @return The generated JWT token string.
      */
@@ -13,6 +14,7 @@ public interface TokenService {
 
     /**
      * Validates the provided JWT token and returns the username when valid.
+     *
      * @param token The JWT token to validate.
      * @return The username if the token is valid; otherwise null.
      */
@@ -20,6 +22,7 @@ public interface TokenService {
 
     /**
      * Validates if the provided JWT token is valid.
+     *
      * @param token The JWT token to validate.
      * @return True if the token is valid; otherwise false.
      */

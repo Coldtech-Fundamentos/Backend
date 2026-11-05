@@ -2,6 +2,7 @@ package com.frigora.frigoraplatform.reporting.infrastructure.persistence.jpa.rep
 
 import com.frigora.frigoraplatform.reporting.domain.model.aggregates.Report;
 import com.frigora.frigoraplatform.reporting.domain.repositories.ReportRepository;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,7 +13,6 @@ public class ReportRepositoryImpl implements ReportRepository {
 
     private final JpaReportRepository jpaRepository;
 
-    // Inyectamos el repositorio de Spring Data
     public ReportRepositoryImpl(JpaReportRepository jpaRepository) {
         this.jpaRepository = jpaRepository;
     }

@@ -2,6 +2,7 @@ package com.frigora.frigoraplatform.monitoring.interfaces.rest.resources;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.frigora.frigoraplatform.monitoring.domain.model.valueobjects.StatusEquipment;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

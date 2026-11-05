@@ -2,9 +2,7 @@ package com.frigora.frigoraplatform.iam.domain.model.queries;
 
 /**
  * Get all users query
- * <p>
- *     This class represents the query to get all the users in the system.
- * </p>
+ *
+ * <p>This class represents the query to get all the users in the system.
  */
-public record GetAllUsersQuery() {
-}
+public record GetAllUsersQuery() {}

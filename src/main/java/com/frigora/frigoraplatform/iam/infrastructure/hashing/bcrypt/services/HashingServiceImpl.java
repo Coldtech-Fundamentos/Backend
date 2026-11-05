@@ -1,12 +1,13 @@
 package com.frigora.frigoraplatform.iam.infrastructure.hashing.bcrypt.services;
 
 import com.frigora.frigoraplatform.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
- * This class implements the {@link BCryptHashingService} interface.
- * It is used to hash passwords using the BCrypt algorithm.
+ * This class implements the {@link BCryptHashingService} interface. It is used to hash passwords
+ * using the BCrypt algorithm.
  */
 @Service
 public class HashingServiceImpl implements BCryptHashingService {
@@ -18,6 +19,7 @@ public class HashingServiceImpl implements BCryptHashingService {
 
     /**
      * Hash a password using the BCrypt algorithm
+     *
      * @param rawPassword the password to hash
      * @return String the hashed password
      */
@@ -28,6 +30,7 @@ public class HashingServiceImpl implements BCryptHashingService {
 
     /**
      * Check if a raw password matches a hashed password
+     *
      * @param rawPassword the raw password
      * @param encodedPassword the hashed password
      * @return boolean true if the raw password matches the hashed password, false otherwise
@@ -36,5 +39,4 @@ public class HashingServiceImpl implements BCryptHashingService {
     public boolean matches(CharSequence rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }
-
 }

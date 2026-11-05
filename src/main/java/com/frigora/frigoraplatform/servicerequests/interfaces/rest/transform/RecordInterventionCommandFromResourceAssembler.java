@@ -5,14 +5,14 @@ import com.frigora.frigoraplatform.servicerequests.interfaces.rest.resources.Rec
 
 public class RecordInterventionCommandFromResourceAssembler {
 
-    public static RecordInterventionCommand toCommandFromResource(RecordInterventionResource resource) {
+    public static RecordInterventionCommand toCommandFromResource(
+            RecordInterventionResource resource) {
         return new RecordInterventionCommand(
                 resource.serviceRequestId(),
                 resource.technicianId(),
                 resource.summary(),
                 resource.startTime(),
                 resource.endTime(),
-                resource.photoUrls()
-        );
+                resource.photoUrls());
     }
 }

@@ -1,6 +1,5 @@
 package com.frigora.frigoraplatform.reporting.interfaces.rest.resources;
 
-
 import com.frigora.frigoraplatform.reporting.domain.model.valueobjects.EReportStatus;
 import com.frigora.frigoraplatform.reporting.domain.model.valueobjects.EReportType;
 
@@ -13,5 +12,4 @@ public record ReportResource(
         EReportStatus status,
         String summary,
         String content,
-        String url
-) {}
+        String url) {}

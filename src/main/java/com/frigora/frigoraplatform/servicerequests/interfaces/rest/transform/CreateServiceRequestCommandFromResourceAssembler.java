@@ -7,7 +7,8 @@ import com.frigora.frigoraplatform.servicerequests.interfaces.rest.resources.Cre
 
 public class CreateServiceRequestCommandFromResourceAssembler {
 
-    public static CreateServiceRequestCommand toCommandFromResource(CreateServiceRequestResource resource) {
+    public static CreateServiceRequestCommand toCommandFromResource(
+            CreateServiceRequestResource resource) {
         return new CreateServiceRequestCommand(
                 resource.requesterId(),
                 resource.siteId(),
@@ -15,8 +16,8 @@ public class CreateServiceRequestCommandFromResourceAssembler {
                 resource.assignedTo(),
                 resource.origin(),
                 ServiceRequestType.EServiceRequestType.valueOf(resource.type().toUpperCase()),
-                ServiceRequestPriority.EServiceRequestPriority.valueOf(resource.priority().toUpperCase()),
-                resource.description()
-        );
+                ServiceRequestPriority.EServiceRequestPriority.valueOf(
+                        resource.priority().toUpperCase()),
+                resource.description());
     }
 }

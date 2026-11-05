@@ -5,7 +5,9 @@ import com.frigora.frigoraplatform.monitoring.domain.model.commands.CreateEquipm
 import com.frigora.frigoraplatform.monitoring.domain.model.commands.DeleteEquipmentCommand;
 import com.frigora.frigoraplatform.monitoring.domain.repositories.EquipmentRepository;
 import com.frigora.frigoraplatform.monitoring.domain.services.EquipmentCommandService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,19 +20,20 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     @Override
     @Transactional
     public Equipment create(CreateEquipmentCommand command) {
-        Equipment equipment = Equipment.builder()
-                .model(command.model())
-                .type(command.type())
-                .serial(command.serial())
-                .status(command.status())
-                .installed(command.installed())
-                .lastSeen(command.lastSeen())
-                .setPoint(command.setPoint())
-                .name(command.name())
-                .manufacturer(command.manufacturer())
-                .online(command.online())
-                .ownerId(command.ownerId())
-                .build();
+        Equipment equipment =
+                Equipment.builder()
+                        .model(command.model())
+                        .type(command.type())
+                        .serial(command.serial())
+                        .status(command.status())
+                        .installed(command.installed())
+                        .lastSeen(command.lastSeen())
+                        .setPoint(command.setPoint())
+                        .name(command.name())
+                        .manufacturer(command.manufacturer())
+                        .online(command.online())
+                        .ownerId(command.ownerId())
+                        .build();
 
         return equipmentRepository.save(equipment);
     }

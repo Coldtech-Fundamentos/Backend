@@ -7,21 +7,16 @@ import com.frigora.frigoraplatform.iam.domain.model.queries.GetUserByUsernameQue
 import com.frigora.frigoraplatform.iam.domain.model.valueobjects.Roles;
 import com.frigora.frigoraplatform.iam.domain.services.UserCommandService;
 import com.frigora.frigoraplatform.iam.domain.services.UserQueryService;
-import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.util.Strings;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
 
 /**
  * IamContextFacade
- * <p>
- *     This class is a facade for the IAM context. It provides a simple interface for other bounded contexts to interact with the
- *     IAM context.
- *     This class is a part of the ACL layer.
- * </p>
  *
+ * <p>This class is a facade for the IAM context. It provides a simple interface for other bounded
+ * contexts to interact with the IAM context. This class is a part of the ACL layer.
  */
 @Service
 @RequiredArgsConstructor

@@ -2,10 +2,12 @@ package com.frigora.frigoraplatform.servicerequests.domain.model.valueobjects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+
 import lombok.Getter;
 
 @Embeddable
@@ -13,7 +15,9 @@ import lombok.Getter;
 public class ServiceRequestPriority {
 
     public enum EServiceRequestPriority {
-        HIGH, MEDIUM, LOW;
+        HIGH,
+        MEDIUM,
+        LOW;
 
         @JsonValue
         public String toJson() {

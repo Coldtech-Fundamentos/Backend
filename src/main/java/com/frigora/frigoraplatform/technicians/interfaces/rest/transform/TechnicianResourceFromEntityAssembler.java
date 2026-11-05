@@ -10,7 +10,6 @@ public class TechnicianResourceFromEntityAssembler {
                 entity.getName(),
                 entity.getSpecialty(),
                 entity.getPhone(),
-                entity.getProviderId()
-        );
+                entity.getProviderId());
     }
 }

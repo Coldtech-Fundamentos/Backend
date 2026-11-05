@@ -1,5 +1,7 @@
 package com.frigora.frigoraplatform.reporting.infrastructure.persistence.jpa;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.frigora.frigoraplatform.reporting.application.internal.commandservices.ReportCommandServiceImpl;
 import com.frigora.frigoraplatform.reporting.application.internal.queryservices.ReportQueryServiceImpl;
 import com.frigora.frigoraplatform.reporting.domain.model.aggregates.Report;
@@ -13,8 +15,10 @@ import com.frigora.frigoraplatform.reporting.domain.model.valueobjects.EReportTy
 import com.frigora.frigoraplatform.reporting.infrastructure.persistence.jpa.repositories.JpaReportRepository;
 import com.frigora.frigoraplatform.reporting.infrastructure.persistence.jpa.repositories.ReportRepositoryImpl;
 import com.frigora.frigoraplatform.shared.infrastructure.persistence.jpa.configuration.strategy.SnakeCaseWithPluralizedTablePhysicalNamingStrategy;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -33,33 +37,39 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
 
-import javax.sql.DataSource;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import javax.sql.DataSource;
 
-/** Uses only a disposable container. Never loads application.properties or the monolith context. */
+// Uses only a disposable container. Never loads application.properties or the monolith context.
 @Testcontainers(disabledWithoutDocker = true)
 @SpringJUnitConfig(ReportMySqlIntegrationTests.JpaConfiguration.class)
 @Transactional
 class ReportMySqlIntegrationTests {
     @Container
-    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4")
-            .withDatabaseName("reporting_integration_test")
-            .withUsername("reporting_test").withPassword("disposable-test-password");
+    static final MySQLContainer MYSQL =
+            new MySQLContainer("mysql:8.4")
+                    .withDatabaseName("reporting_integration_test")
+                    .withUsername("reporting_test")
+                    .withPassword("disposable-test-password");
 
     @Configuration(proxyBeanMethods = false)
     @EnableTransactionManagement
     @EnableJpaAuditing
     @EnableJpaRepositories(basePackageClasses = JpaReportRepository.class)
-    @Import({ReportRepositoryImpl.class, ReportCommandServiceImpl.class, ReportQueryServiceImpl.class})
+    @Import({
+        ReportRepositoryImpl.class,
+        ReportCommandServiceImpl.class,
+        ReportQueryServiceImpl.class
+    })
     static class JpaConfiguration {
         @Bean
         DataSource dataSource() {
             // Credentials and URL always come from this container, with no environment fallback.
-            return new DriverManagerDataSource(MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
+            return new DriverManagerDataSource(
+                    MYSQL.getJdbcUrl(), MYSQL.getUsername(), MYSQL.getPassword());
         }
 
         @Bean
@@ -68,10 +78,13 @@ class ReportMySqlIntegrationTests {
             factory.setDataSource(dataSource);
             factory.setPackagesToScan(Report.class.getPackageName());
             factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-            factory.setJpaPropertyMap(Map.of(
-                    "hibernate.hbm2ddl.auto", "create-drop",
-                    "hibernate.jdbc.time_zone", "UTC",
-                    "hibernate.physical_naming_strategy", SnakeCaseWithPluralizedTablePhysicalNamingStrategy.class.getName()));
+            factory.setJpaPropertyMap(
+                    Map.of(
+                            "hibernate.hbm2ddl.auto", "create-drop",
+                            "hibernate.jdbc.time_zone", "UTC",
+                            "hibernate.physical_naming_strategy",
+                                    SnakeCaseWithPluralizedTablePhysicalNamingStrategy.class
+                                            .getName()));
             return factory;
         }
 
@@ -88,8 +101,16 @@ class ReportMySqlIntegrationTests {
     @PersistenceContext EntityManager entityManager;
 
     private Report create(int owner, int equipment) {
-        return commands.handle(new CreateReportCommand(owner, EReportType.INSPECTION, equipment,
-                "Inspection", "Summary", "Content", "https://example.test/report")).orElseThrow();
+        return commands.handle(
+                        new CreateReportCommand(
+                                owner,
+                                EReportType.INSPECTION,
+                                equipment,
+                                "Inspection",
+                                "Summary",
+                                "Content",
+                                "https://example.test/report"))
+                .orElseThrow();
     }
 
     private void flushAndClear() {
@@ -108,9 +129,14 @@ class ReportMySqlIntegrationTests {
         assertThat(loaded.getEquipmentId()).isEqualTo(50);
         assertThat(loaded.getType()).isEqualTo(EReportType.INSPECTION);
         assertThat(loaded.getStatus()).isEqualTo(EReportStatus.IN_PROGRESS);
-        Object[] row = (Object[]) entityManager.createNativeQuery(
-                "select tenant_id, equipment_id, type, status, title, summary, content, url from reports where id = :id")
-                .setParameter("id", id).getSingleResult();
+        Object[] row =
+                (Object[])
+                        entityManager
+                                .createNativeQuery(
+                                        "select tenant_id, equipment_id, type, status, title,"
+                                            + " summary, content, url from reports where id = :id")
+                                .setParameter("id", id)
+                                .getSingleResult();
         assertThat(((Number) row[0]).intValue()).isEqualTo(101);
         assertThat(((Number) row[1]).intValue()).isEqualTo(50);
         assertThat(row[2]).isEqualTo("INSPECTION");
@@ -143,9 +169,11 @@ class ReportMySqlIntegrationTests {
         int id = first.getId();
         flushAndClear();
         assertThat(repository.findAllByEquipmentIdAndTenantId(50, 101))
-                .extracting(Report::getId).containsExactly(id);
+                .extracting(Report::getId)
+                .containsExactly(id);
         assertThat(queries.handle(new GetAllReportsByEquipmentIdQuery(50, 202)))
-                .extracting(Report::getTenantId).containsExactly(202);
+                .extracting(Report::getTenantId)
+                .containsExactly(202);
         assertThat(repository.findAllByEquipmentIdAndTenantId(50, 303)).isEmpty();
         assertThat(repository.findAllByTenantId(101)).hasSize(2);
     }
@@ -154,8 +182,18 @@ class ReportMySqlIntegrationTests {
     void authorizedUpdatePersistsChangesAndPreservesOwner() {
         int id = create(101, 50).getId();
         flushAndClear();
-        assertThat(commands.handle(new UpdateReportCommand(id, 101, 60, "Updated",
-                EReportStatus.COMPLETED, "Summary", "Changed", "url"))).isPresent();
+        assertThat(
+                        commands.handle(
+                                new UpdateReportCommand(
+                                        id,
+                                        101,
+                                        60,
+                                        "Updated",
+                                        EReportStatus.COMPLETED,
+                                        "Summary",
+                                        "Changed",
+                                        "url")))
+                .isPresent();
         flushAndClear();
         var loaded = jpa.findById(id).orElseThrow();
         assertThat(loaded.getTenantId()).isEqualTo(101);
@@ -168,8 +206,18 @@ class ReportMySqlIntegrationTests {
     void foreignUpdateAndDeleteLeaveTheStoredReportUntouched() {
         int id = create(101, 50).getId();
         flushAndClear();
-        assertThat(commands.handle(new UpdateReportCommand(id, 202, 60, "Unauthorized",
-                EReportStatus.CANCELED, "", "", ""))).isEmpty();
+        assertThat(
+                        commands.handle(
+                                new UpdateReportCommand(
+                                        id,
+                                        202,
+                                        60,
+                                        "Unauthorized",
+                                        EReportStatus.CANCELED,
+                                        "",
+                                        "",
+                                        "")))
+                .isEmpty();
         assertThat(commands.handle(new DeleteReportCommand(id, 202))).isFalse();
         flushAndClear();
         var loaded = jpa.findById(id).orElseThrow();
@@ -192,8 +240,16 @@ class ReportMySqlIntegrationTests {
 
     @Test
     void embeddedAuditColumnsRoundTripAndCreatedAtIsNotUpdated() {
-        var report = new Report(new CreateReportCommand(101, EReportType.INSPECTION, 50,
-                "Inspection", "Summary", "Content", "https://example.test/report"));
+        var report =
+                new Report(
+                        new CreateReportCommand(
+                                101,
+                                EReportType.INSPECTION,
+                                50,
+                                "Inspection",
+                                "Summary",
+                                "Content",
+                                "https://example.test/report"));
         var created = OffsetDateTime.of(2026, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC);
         var updated = created.plusDays(1);
         report.getAudit().setCreatedDate(created);
@@ -209,16 +265,23 @@ class ReportMySqlIntegrationTests {
         flushAndClear();
         var reloaded = jpa.findById(id).orElseThrow();
         assertThat(reloaded.getAudit().getCreatedDate().toInstant()).isEqualTo(created.toInstant());
-        assertThat(reloaded.getAudit().getUpdatedDate().toInstant()).isEqualTo(updated.plusDays(1).toInstant());
+        assertThat(reloaded.getAudit().getUpdatedDate().toInstant())
+                .isEqualTo(updated.plusDays(1).toInstant());
     }
 
     @Test
     void documentsCurrentMissingAutomaticAuditListener() {
         int id = create(101, 50).getId();
         flushAndClear();
-        Object[] audit = (Object[]) entityManager.createNativeQuery(
-                "select created_at, updated_at from reports where id = :id").setParameter("id", id).getSingleResult();
-        // Characterization of the current limitation, not a guarantee of working automatic auditing.
+        Object[] audit =
+                (Object[])
+                        entityManager
+                                .createNativeQuery(
+                                        "select created_at, updated_at from reports where id = :id")
+                                .setParameter("id", id)
+                                .getSingleResult();
+        // Characterization of the current limitation, not a guarantee of working automatic
+        // auditing.
         assertThat(audit).containsOnlyNulls();
     }
 }

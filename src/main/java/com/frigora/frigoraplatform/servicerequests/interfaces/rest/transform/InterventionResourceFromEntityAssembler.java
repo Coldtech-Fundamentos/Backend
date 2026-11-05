@@ -14,7 +14,6 @@ public class InterventionResourceFromEntityAssembler {
                 entity.getSummary(),
                 entity.getStartTime(),
                 entity.getEndTime(),
-                entity.getPhotoUrls()
-        );
+                entity.getPhotoUrls());
     }
 }

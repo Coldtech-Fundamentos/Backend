@@ -11,7 +11,6 @@ public class ReviewResourceFromEntityAssembler {
                 entity.getServiceRequestId().getValue(),
                 entity.getTechnicianId().getValue(),
                 entity.getRating().getValue(),
-                entity.getComment()
-        );
+                entity.getComment());
     }
 }

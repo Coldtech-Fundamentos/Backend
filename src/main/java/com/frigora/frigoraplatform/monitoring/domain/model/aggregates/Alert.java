@@ -2,7 +2,9 @@ package com.frigora.frigoraplatform.monitoring.domain.model.aggregates;
 
 import com.frigora.frigoraplatform.monitoring.domain.model.valueobjects.EAlertSeverity;
 import com.frigora.frigoraplatform.monitoring.domain.model.valueobjects.EAlertStatus;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 
 import java.time.LocalDateTime;

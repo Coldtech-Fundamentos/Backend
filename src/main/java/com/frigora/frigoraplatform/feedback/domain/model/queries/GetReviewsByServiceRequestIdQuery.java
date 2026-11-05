@@ -1,4 +1,3 @@
 package com.frigora.frigoraplatform.feedback.domain.model.queries;
 
-public record GetReviewsByServiceRequestIdQuery(int serviceRequestId) {
-}
+public record GetReviewsByServiceRequestIdQuery(int serviceRequestId) {}

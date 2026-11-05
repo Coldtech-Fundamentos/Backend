@@ -3,6 +3,7 @@ package com.frigora.frigoraplatform.iam.infrastructure.authorization.sfs.configu
 import com.frigora.frigoraplatform.iam.infrastructure.authorization.sfs.pipeline.BearerAuthorizationRequestFilter;
 import com.frigora.frigoraplatform.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
 import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,11 +25,10 @@ import java.util.List;
 
 /**
  * Web Security Configuration.
- * <p>
- * This class is responsible for configuring the web security.
- * It enables the method security and configures the security filter chain.
- * It includes the authentication manager, the authentication provider, the password encoder and the authentication entry point.
- * </p>
+ *
+ * <p>This class is responsible for configuring the web security. It enables the method security and
+ * configures the security filter chain. It includes the authentication manager, the authentication
+ * provider, the password encoder and the authentication entry point.
  */
 @Configuration
 @EnableMethodSecurity
@@ -44,6 +44,7 @@ public class WebSecurityConfiguration {
 
     /**
      * This method creates the Bearer Authorization Request Filter.
+     *
      * @return The Bearer Authorization Request Filter
      * @see BearerAuthorizationRequestFilter
      */
@@ -54,18 +55,22 @@ public class WebSecurityConfiguration {
 
     /**
      * This method creates the authentication manager.
-     * @param authenticationConfiguration The {@link AuthenticationConfiguration} object with the authentication configuration
-     * @return The {@link AuthenticationManager} instance from the authentication configuration
      *
+     * @param authenticationConfiguration The {@link AuthenticationConfiguration} object with the
+     *     authentication configuration
+     * @return The {@link AuthenticationManager} instance from the authentication configuration
      */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     /**
      * This method creates the authentication provider.
-     * @return The {@link DaoAuthenticationProvider} authentication provider with the user details service and the password encoder
+     *
+     * @return The {@link DaoAuthenticationProvider} authentication provider with the user details
+     *     service and the password encoder
      */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -76,6 +81,7 @@ public class WebSecurityConfiguration {
 
     /**
      * This method creates the password encoder.
+     *
      * @return The {@link PasswordEncoder} instance with the hashing service
      */
     @Bean
@@ -84,67 +90,80 @@ public class WebSecurityConfiguration {
     }
 
     /**
-     * This method creates the security filter chain.
-     * It also configures the http security.
+     * This method creates the security filter chain. It also configures the http security.
      *
      * @param http The {@link HttpSecurity} object to configure with the security filter chain
-     * @return The {@link SecurityFilterChain} instance with the application http security configuration
+     * @return The {@link SecurityFilterChain} instance with the application http security
+     *     configuration
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.cors(configurer -> configurer.configurationSource(request -> {
-            CorsConfiguration cors = new CorsConfiguration();
+        http.cors(
+                configurer ->
+                        configurer.configurationSource(
+                                request -> {
+                                    CorsConfiguration cors = new CorsConfiguration();
 
-            cors.setAllowedOrigins(List.of("http://localhost:4200", "https://frigora-frontend.vercel.app"));
-            cors.setAllowedMethods(List.of(
-                    "GET",
-                    "POST",
-                    "PUT",
-                    "PATCH",
-                    "DELETE",
-                    "OPTIONS"
-            ));
-            cors.setAllowedHeaders(List.of("*"));
-            cors.setAllowCredentials(true);
+                                    cors.setAllowedOrigins(
+                                            List.of(
+                                                    "http://localhost:4200",
+                                                    "https://frigora-frontend.vercel.app"));
+                                    cors.setAllowedMethods(
+                                            List.of(
+                                                    "GET", "POST", "PUT", "PATCH", "DELETE",
+                                                    "OPTIONS"));
+                                    cors.setAllowedHeaders(List.of("*"));
+                                    cors.setAllowCredentials(true);
 
-            return cors;
-        }));
+                                    return cors;
+                                }));
 
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler))
-                .sessionManagement(customizer ->
-                        customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(
-                                "/api/v1/authentication/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-                        .anyRequest().authenticated());
+                .exceptionHandling(
+                        exceptionHandling ->
+                                exceptionHandling.authenticationEntryPoint(
+                                        unauthorizedRequestHandler))
+                .sessionManagement(
+                        customizer ->
+                                customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(
+                        authorizeRequests ->
+                                authorizeRequests
+                                        .requestMatchers(
+                                                org.springframework.http.HttpMethod.OPTIONS, "/**")
+                                        .permitAll()
+                                        .requestMatchers(
+                                                "/api/v1/authentication/**",
+                                                "/v3/api-docs/**",
+                                                "/swagger-ui.html",
+                                                "/swagger-ui/**",
+                                                "/swagger-resources/**",
+                                                "/webjars/**")
+                                        .permitAll()
+                                        .anyRequest()
+                                        .authenticated());
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(
-                authorizationRequestFilter(),
-                UsernamePasswordAuthenticationFilter.class
-        );
+                authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
      * This is the constructor of the class.
+     *
      * @param userDetailsService The user details service
      * @param tokenService The token service
      * @param hashingService The hashing service
      * @param authenticationEntryPoint The authentication entry point
      */
-    public WebSecurityConfiguration(@Qualifier("defaultUserDetailsService") UserDetailsService userDetailsService, BearerTokenService tokenService, BCryptHashingService hashingService, AuthenticationEntryPoint authenticationEntryPoint) {
+    public WebSecurityConfiguration(
+            @Qualifier("defaultUserDetailsService") UserDetailsService userDetailsService,
+            BearerTokenService tokenService,
+            BCryptHashingService hashingService,
+            AuthenticationEntryPoint authenticationEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.hashingService = hashingService;

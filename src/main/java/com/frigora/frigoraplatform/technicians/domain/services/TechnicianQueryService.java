@@ -10,6 +10,8 @@ import java.util.Optional;
 
 public interface TechnicianQueryService {
     List<Technician> handle(GetAllTechniciansQuery query);
+
     Optional<Technician> handle(GetTechnicianByIdQuery query);
+
     List<Technician> handle(GetTechniciansByProviderIdQuery query);
 }

@@ -3,15 +3,16 @@ package com.frigora.frigoraplatform.iam.domain.model.aggregates;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.frigora.frigoraplatform.iam.domain.model.valueobjects.Roles;
 import com.frigora.frigoraplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * User aggregate root
- * This class represents the aggregate root for the User entity.
+ * User aggregate root This class represents the aggregate root for the User entity.
  *
  * @see AuditableAbstractAggregateRoot
  */

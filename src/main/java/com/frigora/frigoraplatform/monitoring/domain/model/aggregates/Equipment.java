@@ -1,7 +1,9 @@
 package com.frigora.frigoraplatform.monitoring.domain.model.aggregates;
 
 import com.frigora.frigoraplatform.monitoring.domain.model.valueobjects.StatusEquipment;
+
 import jakarta.persistence.*;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -56,7 +58,7 @@ public class Equipment {
     private LocalDateTime updated;
 
     @Column(nullable = false)
-    private Long ownerId; 
+    private Long ownerId;
 
     @PrePersist
     protected void onCreate() {
