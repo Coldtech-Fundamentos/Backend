@@ -25,13 +25,13 @@ public class ReportQueryServiceImpl implements ReportQueryService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Report> handle(GetReportByIdQuery query) {
-        return reportRepository.findById(query.reportId());
+        return reportRepository.findByIdAndTenantId(query.reportId(), query.tenantId());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Report> handle(GetAllReportsQuery query) {
-        return reportRepository.findAll();
+        return reportRepository.findAllByTenantId(query.tenantId());
     }
 
     @Override
@@ -43,6 +43,6 @@ public class ReportQueryServiceImpl implements ReportQueryService {
     @Override
     @Transactional(readOnly = true)
     public List<Report> handle(GetAllReportsByEquipmentIdQuery query) {
-        return reportRepository.findAllByEquipmentId(query.equipmentId());
+        return reportRepository.findAllByEquipmentIdAndTenantId(query.equipmentId(), query.tenantId());
     }
 }

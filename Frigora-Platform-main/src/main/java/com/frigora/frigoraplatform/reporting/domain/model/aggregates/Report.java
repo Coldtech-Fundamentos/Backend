@@ -62,9 +62,8 @@ public class Report {
         this.url = command.url();
     }
 
-    public void updateReport(Integer tenantId, Integer equipmentId, String title, EReportStatus status,
+    public void updateReport(Integer equipmentId, String title, EReportStatus status,
                              String summary, String content, String url) {
-        this.tenantId = tenantId;
         this.equipmentId = equipmentId;
         this.title = title;
         this.status = status;

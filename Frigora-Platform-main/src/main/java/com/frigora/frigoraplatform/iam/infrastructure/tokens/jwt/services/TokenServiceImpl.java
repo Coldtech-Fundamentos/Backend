@@ -2,6 +2,7 @@ package com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.services;
 
 import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
 import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
+import com.frigora.frigoraplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -26,6 +27,11 @@ import java.util.function.Function;
  */
 @Service
 public class TokenServiceImpl implements BearerTokenService {
+    private final UserRepository userRepository;
+
+    public TokenServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
     private final Logger LOGGER = LoggerFactory.getLogger(TokenServiceImpl.class);
 
     private static final String AUTHORIZATION_PARAMETER_NAME = "Authorization";
@@ -48,7 +54,7 @@ public class TokenServiceImpl implements BearerTokenService {
      */
     @Override
     public String generateToken(Authentication authentication) {
-        return buildTokenWithDefaultParameters(authentication.getName());
+        return generateToken(authentication.getName());
     }
 
     /**
@@ -57,7 +63,8 @@ public class TokenServiceImpl implements BearerTokenService {
      * @return String the JWT token
      */
     public String generateToken(String username) {
-        return buildTokenWithDefaultParameters(username);
+        return generateToken(userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found")));
     }
 
     /**
@@ -66,12 +73,13 @@ public class TokenServiceImpl implements BearerTokenService {
      * @param username the username
      * @return String the JWT token
      */
-    private String buildTokenWithDefaultParameters(String username) {
+    private String buildTokenWithDefaultParameters(String username, int userId) {
         var issuedAt = new Date();
         var expiration = DateUtils.addDays(issuedAt, expirationDays);
         var key = getSigningKey();
         return Jwts.builder()
                 .subject(username)
+                .claim("userId", userId)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key)
@@ -88,6 +96,21 @@ public class TokenServiceImpl implements BearerTokenService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    @Override
+    public Integer getUserIdFromToken(String token) {
+        var claims = extractAllClaims(token);
+        if (!claims.containsKey("userId")) {
+            return null;
+        }
+        Object value = claims.get("userId");
+        if ((value instanceof Integer || value instanceof Long)
+                && ((Number) value).longValue() > 0
+                && ((Number) value).longValue() <= Integer.MAX_VALUE) {
+            return ((Number) value).intValue();
+        }
+        throw new IllegalArgumentException("Invalid userId claim");
+    }
+
     /**
      * This method validates a JWT token
      * @param token the token
@@ -100,15 +123,15 @@ public class TokenServiceImpl implements BearerTokenService {
             LOGGER.info("Token is valid");
             return true;
         }  catch (SignatureException e) {
-            LOGGER.error("Invalid JSON Web Token Signature: {}", e.getMessage());
+            LOGGER.error("Invalid JSON Web Token Signature");
         } catch (MalformedJwtException e) {
-            LOGGER.error("Invalid JSON Web Token: {}", e.getMessage());
+            LOGGER.error("Invalid JSON Web Token");
         } catch (ExpiredJwtException e) {
-            LOGGER.error("JSON Web Token is expired: {}", e.getMessage());
+            LOGGER.error("JSON Web Token is expired");
         } catch (UnsupportedJwtException e) {
-            LOGGER.error("JSON Web Token is unsupported: {}", e.getMessage());
+            LOGGER.error("JSON Web Token is unsupported");
         } catch (IllegalArgumentException e) {
-            LOGGER.error("JSON Web Token claims string is empty: {}", e.getMessage());
+            LOGGER.error("JSON Web Token claims string is empty");
         }
         return false;
     }
@@ -168,7 +191,7 @@ public class TokenServiceImpl implements BearerTokenService {
 
     @Override
     public String generateToken(User user) {
-        return buildTokenWithDefaultParameters(user.getUsername());
+        return buildTokenWithDefaultParameters(user.getUsername(), user.getId());
     }
 
 }

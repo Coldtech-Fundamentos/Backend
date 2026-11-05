@@ -28,8 +28,8 @@ public class ReportRepositoryImpl implements ReportRepository {
     }
 
     @Override
-    public Optional<Report> findById(Integer id) {
-        return jpaRepository.findById(id);
+    public Optional<Report> findByIdAndTenantId(Integer id, Integer tenantId) {
+        return jpaRepository.findByIdAndTenantId(id, tenantId);
     }
 
     @Override
@@ -43,8 +43,8 @@ public class ReportRepositoryImpl implements ReportRepository {
     }
 
     @Override
-    public List<Report> findAllByEquipmentId(Integer equipmentId) {
-        return jpaRepository.findAllByEquipmentId(equipmentId);
+    public List<Report> findAllByEquipmentIdAndTenantId(Integer equipmentId, Integer tenantId) {
+        return jpaRepository.findAllByEquipmentIdAndTenantId(equipmentId, tenantId);
     }
 
     @Override

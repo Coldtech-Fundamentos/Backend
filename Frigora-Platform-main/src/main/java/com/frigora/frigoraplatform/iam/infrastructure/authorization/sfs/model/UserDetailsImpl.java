@@ -1,6 +1,7 @@
 package com.frigora.frigoraplatform.iam.infrastructure.authorization.sfs.model;
 
 import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedIdentity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -18,7 +19,9 @@ import java.util.stream.Collectors;
  */
 @Getter
 @EqualsAndHashCode
-public class UserDetailsImpl implements UserDetails {
+public class UserDetailsImpl implements AuthenticatedIdentity {
+
+    private final Integer userId;
 
     private final String username;
     @JsonIgnore
@@ -36,6 +39,7 @@ public class UserDetailsImpl implements UserDetails {
      * @param authorities The authorities.
      */
     public UserDetailsImpl(String username, String password, Collection<? extends GrantedAuthority> authorities) {
+        this.userId = null;
         this.username = username;
         this.password = password;
         this.authorities = authorities;
@@ -43,6 +47,22 @@ public class UserDetailsImpl implements UserDetails {
         this.accountNonLocked = true;
         this.credentialsNonExpired = true;
         this.enabled = true;
+    }
+
+    private UserDetailsImpl(UserDetails source, Integer userId) {
+        this.userId = userId;
+        this.username = source.getUsername();
+        this.password = source.getPassword();
+        this.authorities = source.getAuthorities();
+        this.accountNonExpired = source.isAccountNonExpired();
+        this.accountNonLocked = source.isAccountNonLocked();
+        this.credentialsNonExpired = source.isCredentialsNonExpired();
+        this.enabled = source.isEnabled();
+    }
+
+    /** Called by security with a userId extracted from a verified JWT, never from the database. */
+    public static UserDetailsImpl withValidatedUserId(UserDetails source, Integer userId) {
+        return new UserDetailsImpl(source, userId);
     }
 
     /**

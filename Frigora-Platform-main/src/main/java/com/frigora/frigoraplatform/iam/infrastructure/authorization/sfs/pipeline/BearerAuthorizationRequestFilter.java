@@ -55,19 +55,19 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
             LOGGER.info("FILTER EXECUTED: {}", request.getRequestURI());
             String token = tokenService.getBearerTokenFrom(request);
 
-            LOGGER.info("Token: {}", token);
             if (token != null && tokenService.validateToken(token)) {
 
                 String username = tokenService.getUsernameFromToken(token);
+                Integer userId = tokenService.getUserIdFromToken(token);
 
                 var userDetails = userDetailsService.loadUserByUsername(username);
 
-                var auth = UsernamePasswordAuthenticationTokenBuilder.build(userDetails, request);
+                var auth = UsernamePasswordAuthenticationTokenBuilder.build(userDetails, request, userId);
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         } catch (Exception e) {
-            LOGGER.error("Cannot set user authentication", e);
+            LOGGER.error("Cannot set user authentication");
             SecurityContextHolder.clearContext();
         }
 

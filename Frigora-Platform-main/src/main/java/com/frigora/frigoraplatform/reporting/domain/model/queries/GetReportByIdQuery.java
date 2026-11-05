@@ -1,3 +1,3 @@
 package com.frigora.frigoraplatform.reporting.domain.model.queries;
 
-public record GetReportByIdQuery(Integer reportId) {}
+public record GetReportByIdQuery(Integer reportId, Integer tenantId) {}
