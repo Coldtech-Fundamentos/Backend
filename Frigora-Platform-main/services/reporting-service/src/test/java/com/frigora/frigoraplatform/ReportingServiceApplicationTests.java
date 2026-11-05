@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.datasource.username=sa", "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.flyway.enabled=false",
         "reporting.jwt.secret=test-only-secret-0123456789-abcdefghijklmnopqrstuvwxyz"
 })
 class ReportingServiceApplicationTests {
