@@ -1,157 +1,105 @@
 # Reporting Service
 
-Proyecto Maven independiente: Spring Boot 4.0.6, Java 21, puerto 8085.
-El monolito permanece en la raíz del repositorio, con su POM y rutas originales.
-No hay POM agregador ni dependencia entre los dos proyectos.
+Independent Maven project using Spring Boot 4.0.6, Java 21, and port 8085. The monolith remains at the application root with its original POM and routes. There is no Maven aggregator or project dependency between the monolith and this service.
 
-```text
+~~~text
 Frigora-Platform-main/
-├── pom.xml, mvnw, mvnw.cmd, src/   # monolito sin mover
+├── pom.xml, mvnw, mvnw.cmd, src/   # Monolith, unchanged
 └── services/reporting-service/
     ├── pom.xml
     ├── README.md
     └── src/
         ├── main/java/com/frigora/frigoraplatform/
         │   ├── ReportingServiceApplication.java
-        │   ├── reporting/         # copia inicial del dominio y API
+        │   ├── reporting/         # Initial copy of the domain and API
         │   └── shared/infrastructure/
-        │       ├── security/      # identidad neutral y seguridad local
-        │       └── persistence/   # estrategia física copiada
+        │       ├── security/      # Neutral identity and local security
+        │       └── persistence/   # Copied physical naming strategy
         ├── main/resources/application.properties
         └── test/java/com/frigora/frigoraplatform/
             ├── ReportingServiceApplicationTests.java
             └── reporting/interfaces/rest/ReportAuthorizationTests.java
-```
+~~~
 
-## Compilar y probar
+## Build and test
 
-Desde la raíz del repositorio, con `JAVA_HOME` apuntando al JDK:
+From the application root, with `JAVA_HOME` pointing to the JDK:
 
-```powershell
+~~~powershell
 ./mvnw.cmd -f services/reporting-service/pom.xml package
-```
+~~~
 
-El wrapper existente solo ejecuta Maven; el servicio no hereda del POM monolítico.
-También puede ejecutarse `mvn package` desde esta carpeta.
-Se genera `target/reporting-service-0.0.1-SNAPSHOT.jar`.
+The existing wrapper runs Maven; this service does not inherit from the monolith POM. You can also run `mvn package` from this directory. The build creates `target/reporting-service-0.0.1-SNAPSHOT.jar`.
 
-Las pruebas arrancan la aplicación con servidor HTTP en puerto aleatorio y H2
-en memoria, sin credenciales externas. Usan JWT firmados, JPA real y auditoría.
-Las pruebas heredadas con MockMvc comprueban adicionalmente los contratos y dos propietarios.
-H2 no valida compatibilidad con MySQL. No se utiliza Docker ni Testcontainers.
-Las credenciales y el secreto ficticios de pruebas no son configuración de ejecución.
+Tests start the application on a random HTTP port and use in-memory H2, without external credentials. They use signed JWTs, real JPA, and auditing. Inherited MockMvc tests also check the contracts and two owners. H2 does not validate MySQL compatibility. Docker and Testcontainers are not used. Test credentials and the dummy secret are not runtime configuration.
 
-## Configuración en IntelliJ
+## IntelliJ IDEA configuration
 
-1. Agregar este `pom.xml` como proyecto Maven adicional, sin sustituir el POM de la raíz.
-2. Seleccionar JDK 21 y el módulo `reporting-service` como classpath de ejecución.
-3. Crear una configuración Application para
-   `com.frigora.frigoraplatform.ReportingServiceApplication`.
-4. Usar esta carpeta como working directory y configurar las variables indicadas abajo.
-5. Ejecutar solo después de crear la base independiente vacía y asignar sus permisos.
+1. Add this `pom.xml` as an additional Maven project; do not replace the root POM.
+2. Select JDK 21 and the `reporting-service` module as the runtime classpath.
+3. Create an Application configuration for `com.frigora.frigoraplatform.ReportingServiceApplication`.
+4. Set this directory as the working directory and configure the environment variables below.
+5. Run only after creating the separate empty database and granting its permissions.
 
-| Variable | Uso |
+| Variable | Purpose |
 | --- | --- |
-| `REPORTING_DB_HOST` | Host de MySQL, predeterminado `localhost` |
-| `REPORTING_DB_PORT` | Puerto de MySQL, predeterminado `3306` |
-| `REPORTING_DB_USERNAME` | Usuario exclusivo de la base independiente, obligatorio |
-| `REPORTING_DB_PASSWORD` | Contraseña externa, obligatoria |
-| `REPORTING_JWT_SECRET` | Clave HMAC del emisor IAM, suministrada externamente, obligatoria |
+| `REPORTING_DB_HOST` | MySQL host; defaults to `localhost` |
+| `REPORTING_DB_PORT` | MySQL port; defaults to `3306` |
+| `REPORTING_DB_USERNAME` | Required user dedicated to the separate database |
+| `REPORTING_DB_PASSWORD` | Required external password |
+| `REPORTING_JWT_SECRET` | Required externally supplied HMAC key from the IAM issuer |
 
-La base es **`frigora_reporting_db`**. Debe crearse vacía antes del primer arranque.
-Flyway aplica `src/main/resources/db/migration/V1__create_reports.sql` y registra
-la versión en `flyway_schema_history`; después Hibernate verifica el mapeo con
-`ddl-auto=validate`. No hay copia ni migración de datos del monolito implementada.
-Campos esperados: `id` entero autoincremental, `tenant_id`, `equipment_id`, `type`,
-`title`, `status`, `summary`, `content` TEXT, `url`, `created_at`, `updated_at`.
-Los enums se persisten por nombre Java, no por etiqueta REST.
-La estrategia física conserva los nombres del monolito.
+The database is `frigora_reporting_db` and must be empty before first startup. Flyway applies `src/main/resources/db/migration/V1__create_reports.sql` and records the version in `flyway_schema_history`; Hibernate then validates the mapping with `ddl-auto=validate`. No data copy or migration from the monolith is implemented.
 
-Usar un usuario MySQL cuyos permisos estén restringidos a `frigora_reporting_db`.
-No reutilizar el esquema, credenciales ni la URL del monolito. No sobrescribir
-`spring.datasource.url` para apuntar al almacenamiento antiguo: las dos aplicaciones
-deben tener datos separados durante esta etapa. El monolito sigue siendo el escritor
-de los datos actuales; el nuevo servicio solo puede escribir en su base independiente.
+Expected fields include `id` (auto-increment integer), `tenant_id`, `equipment_id`, `type`, `title`, `status`, `summary`, `content` (TEXT), `url`, `created_at`, and `updated_at`. Enums are persisted using Java enum names, not REST labels. The physical naming strategy preserves the monolith's table and column names.
 
-## Seguridad y contrato
+Use a MySQL user whose permissions are restricted to `frigora_reporting_db`. Do not reuse the monolith schema, credentials, or URL. Do not override `spring.datasource.url` to point to the old storage. The two applications must use separate databases during this stage. The monolith remains the writer for existing data; the new service may write only to its own database.
 
-Todas las rutas `/api/v1/reports` requieren `Authorization: Bearer <JWT>`.
-El parser JJWT 0.12.6 verifica la firma HMAC con los bytes UTF-8 de la clave,
-exactamente como IAM: **no se decodifica la clave como Base64**.
-Se exige `exp` no vencido, `sub` no vacío y `userId` numérico entero positivo
-compatible con `Integer`. Tokens antiguos sin `userId`, expirados, alterados o
-con claims inválidos reciben 401. No se registran tokens ni claves.
+## Security and API contract
 
-No existen consultas de usuarios, contraseñas, `UserRepository`, `UserDetailsService`
-ni referencias al código IAM. Se desactiva la autoconfiguración de usuarios locales.
-La identidad implementa la interfaz neutral copiada en este proyecto; no hay enlaces
-a archivos fuente del monolito. Las autoridades están vacías porque los tokens
-actuales no contienen roles; la autorización implementada es por propietario.
+All `/api/v1/reports` routes require `Authorization: Bearer <JWT>`. JJWT 0.12.6 verifies the HMAC signature using the key's UTF-8 bytes, exactly as IAM does; the key is not Base64-decoded.
 
-Los DTOs, enums JSON y rutas se mantienen: POST 201, GET/PUT/DELETE 200;
-recursos ausentes o ajenos 404. Los filtros por equipo también incluyen propietario.
-Una actualización no puede cambiar `tenantId`.
+The service requires a non-expired `exp`, a non-empty `sub`, and a positive integer `userId` compatible with `Integer`. Old tokens without `userId`, expired or altered tokens, and tokens with invalid claims receive 401. Tokens and keys are never logged.
 
-La auditoría se activa únicamente en esta copia mediante `AuditingEntityListener`
-y un `DateTimeProvider` UTC que devuelve `OffsetDateTime`, sin cambiar tipos SQL.
+The service does not query users or passwords and has no `UserRepository`, `UserDetailsService`, or references to IAM code. Local user auto-configuration is disabled. Identity implements the neutral interface copied into this project; it is not linked to monolith source files. Authorities are empty because current tokens have no roles; authorization is owner-based.
 
-## Pendientes
+DTOs, JSON enums, and routes are preserved: POST returns 201; GET, PUT, and DELETE return 200. Missing or foreign resources return 404. Equipment filters also include the owner. Updates cannot change `tenantId`.
 
-- Ejecutar y validar la migración V1 contra MySQL local real y comparar el DDL original.
-- Planificar copia de datos, corte de escrituras y reversión antes de redirigir tráfico real.
-- Compartir la clave por un canal de secretos y planificar su rotación; HMAC mantiene
-  una clave de firma compartida con el emisor hasta una futura migración a claves públicas.
-- Definir enrutamiento del gateway, CORS y documentación OpenAPI de ejecución.
-- Renovar sesiones antiguas que no tengan `userId`.
+Auditing is enabled only in this copy through `AuditingEntityListener` and a UTC `DateTimeProvider` that returns `OffsetDateTime`, without changing SQL types.
 
-La creación de este proyecto no cambia la ruta de tráfico ni despliega un servicio.
+## Pending work
 
-## Preparar MySQL local (Etapa 3.1)
+- Run and validate Flyway V1 against real local MySQL and compare it with the original DDL.
+- Plan data copying, write cutover, and rollback before routing real traffic.
+- Share the key through a secrets channel and plan its rotation; HMAC currently shares a signing key with the issuer, with a future move to public-key signing left for later.
+- Define Gateway routing, CORS, and runtime OpenAPI documentation.
+- Renew old sessions that lack `userId`.
 
-Ejecutar manualmente con una cuenta administradora de la instancia MySQL local
-autorizada. Sustituir el marcador de contraseña; no guardar credenciales reales
-en el repositorio. No ejecutar sobre la base del monolito.
+Creating this project does not change traffic routing or deploy a service.
 
-```sql
+## Prepare local MySQL (Stage 3.1)
+
+Run this manually with an authorized administrator account for the local MySQL instance. Replace the password placeholder; never store real credentials in the repository. Do not run this against the monolith database.
+
+~~~sql
 CREATE DATABASE frigora_reporting_db CHARACTER SET utf8mb4;
-CREATE USER 'reporting_app'@'localhost' IDENTIFIED BY '<contraseña-local-elegida>';
+CREATE USER 'reporting_app'@'localhost' IDENTIFIED BY '<chosen-local-password>';
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX
     ON frigora_reporting_db.* TO 'reporting_app'@'localhost';
-```
+~~~
 
-No es necesario crear `reports` manualmente. En IntelliJ, usar las variables de
-la tabla anterior y ejecutar `ReportingServiceApplication` en el puerto 8085.
-Alternativamente, desde la raíz, con las mismas variables externas:
+There is no need to create `reports` manually. In IntelliJ, set the variables above and run `ReportingServiceApplication` on port 8085. Alternatively, from the application root, with the same external variables:
 
-```powershell
+~~~powershell
 ./mvnw.cmd -f services/reporting-service/pom.xml spring-boot:run
-```
+~~~
 
-La dependencia `spring-boot-starter-flyway` integra la ejecución antes de JPA;
-`flyway-mysql` añade soporte específico de MySQL. Las versiones se gestionan por
-Spring Boot. No se necesitan URL ni credenciales separadas para Flyway: utiliza
-el datasource exclusivo del servicio. Una cuenta de migraciones separada podrá
-introducirse después si se quieren retirar permisos DDL a la cuenta de ejecución.
+The `spring-boot-starter-flyway` dependency runs migrations before JPA; `flyway-mysql` adds MySQL-specific support. Spring Boot manages their versions. Flyway uses the service's dedicated datasource; separate Flyway credentials are not needed. A separate migration account can be introduced later if DDL permissions should be removed from the runtime account.
 
-`baseline-on-migrate=false` impide adoptar automáticamente un esquema no vacío
-sin historial; `clean-disabled=true` deshabilita la limpieza. Ante un esquema
-inesperado, detenerse y revisar: no activar baseline, clean, repair ni borrar tablas
-para eludir un fallo. Las migraciones aplicadas no se editan; cambios futuros usan V2, V3, etc.
+`baseline-on-migrate=false` prevents automatic adoption of a non-empty schema without migration history; `clean-disabled=true` disables schema cleanup. If the schema is unexpected, stop and investigate. Do not enable baseline, clean, or repair, or drop tables to bypass an error. Applied migrations are immutable; add V2, V3, and later migrations for changes.
 
-V1 conserva `INT` con signo para los identificadores, `VARCHAR(255)` para textos
-sin longitud explícita, `TEXT` para contenido y `DATETIME(6)` para auditoría UTC.
-Los campos salvo la PK admiten NULL como el mapeo actual. Los ENUM contienen los
-nombres Java de todos los valores actuales. Se añade un índice `(tenant_id, equipment_id)`
-para listados por propietario y equipo; las consultas por ID utilizan la PK.
-No hay claves foráneas hacia usuarios o equipos de otros servicios.
-Las fechas las asigna Spring Data, sin defaults ni triggers SQL.
+V1 uses signed INT identifiers, VARCHAR(255) for text without an explicit length, TEXT for content, and DATETIME(6) for UTC auditing. All fields except the primary key allow NULL, matching the current mapping. ENUMs contain the current Java names. An index on `(tenant_id, equipment_id)` supports owner-and-equipment listings; ID queries use the primary key. There are no foreign keys to users or equipment owned by other services. Spring Data assigns dates; the SQL has no date defaults or triggers.
 
-No se inspeccionó el DDL real del monolito. Quedan por contrastar versión MySQL,
-tipos/longitudes/nulabilidad efectivos, valores y orden de ENUM, precisión temporal,
-charset/collation, índices, defaults y restricciones existentes. Esta migración es
-para una base nueva, no para modificar ni adoptar la tabla antigua.
+The monolith's actual DDL was not inspected. MySQL version, effective types and lengths, nullability, ENUM values and order, timestamp precision, charset/collation, indexes, defaults, and existing constraints still need comparison. This migration is for a new database, not for modifying or adopting the old table.
 
-Las pruebas HTTP H2 existentes mantienen Flyway desactivado y crean su esquema
-en memoria. `ReportMigrationTests` ejecuta V1 con Flyway sobre otra H2 en modo MySQL,
-comprueba historial, repetición sin cambios y rechazo de baseline implícito.
-Es una comprobación local del script, no una validación de MySQL ni del DDL original.
+Existing H2 HTTP tests disable Flyway and create their schema in memory. `ReportMigrationTests` runs V1 with Flyway against a separate H2 database in MySQL mode, checks migration history and repeatability, and rejects implicit baselining. This locally checks the script; it does not validate MySQL or the original DDL.

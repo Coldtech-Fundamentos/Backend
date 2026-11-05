@@ -1,42 +1,28 @@
-# Pruebas JPA de Reporting con MySQL
+# Reporting JPA tests with MySQL
 
-Requisitos: JDK 21 o superior, Docker con motor Linux activo y acceso a la imagen
-`mysql:8.4`. Desde la raíz del proyecto:
+Requirements: JDK 21 or later, Docker with a Linux engine running, and access to the `mysql:8.4` image. From the application root, run:
 
-```powershell
+~~~powershell
 ./mvnw.cmd -Dtest=ReportMySqlIntegrationTests test
-```
+~~~
 
-Si Java no está en PATH, configura `JAVA_HOME` hacia tu JDK antes de ejecutar.
-La primera ejecución necesita descargar las dependencias de pruebas y la imagen.
+If Java is not on PATH, set `JAVA_HOME` to your JDK before running. The first run must download the test dependencies and the image.
 
-La suite se omite si Docker no está disponible. Un resultado con pruebas omitidas
-no valida MySQL. Si Docker está disponible pero falla el arranque de MySQL, la suite
-debe fallar y se debe revisar el error; no se sustituye por otra base de datos.
+The suite is skipped when Docker is unavailable. Skipped tests do not validate MySQL. If Docker is available but MySQL fails to start, the suite must fail and the error must be investigated; it must not be replaced with another database.
 
-## Aislamiento
+## Isolation
 
-- Solo utiliza un contenedor MySQL desechable y sus credenciales temporales.
-- No carga `application.properties`, la aplicación principal ni repositorios de otros módulos.
-- No admite una URL externa como alternativa ni consulta credenciales del proyecto.
-- Hibernate crea y elimina el esquema exclusivamente dentro de ese contenedor.
-- Cada prueba utiliza una transacción con rollback; fuerza flush y limpia el contexto
-  para comprobar lecturas reales de la base, no solo entidades en memoria.
-- Usa la estrategia física de nombres actual del proyecto, los adaptadores y los servicios reales.
+- Uses only a disposable MySQL container and temporary credentials.
+- Does not load `application.properties`, the main application, or repositories from other modules.
+- Does not accept an external URL as a fallback or read project credentials.
+- Hibernate creates and drops the schema only inside that container.
+- Each test uses a transaction with rollback, forces a flush, and clears the context to verify database reads rather than in-memory entities alone.
+- Uses the project's current physical naming strategy, adapters, and real services.
 
-## Alcance y limitaciones
+## Scope and limitations
 
-Comprueba CRUD, las consultas por propietario y equipo, la inmutabilidad del propietario
-durante actualizaciones y los nombres físicos/valores de enums mediante SQL nativo.
-Los IDs del modelo y del repositorio de Reporting son `Integer`; los enums se guardan
-como sus nombres Java (`INSPECTION`, `IN_PROGRESS`), no sus etiquetas JSON.
+The suite checks CRUD operations, owner and equipment queries, owner immutability during updates, and physical enum names and values through native SQL. Reporting model and repository IDs are `Integer`; enums are stored as Java names (`INSPECTION`, `IN_PROGRESS`), not their JSON labels.
 
-El esquema de pruebas se genera a partir del modelo. Esto no demuestra que una base
-existente tenga ese mismo DDL: antes de migrar deben compararse columnas, nulabilidad,
-índices y tipos con un volcado de esquema autorizado.
+The test schema is generated from the model. This does not prove that an existing database has the same DDL. Before migration, compare columns, nullability, indexes, and types with an authorized schema dump.
 
-`ReportAudit` tiene anotaciones Spring Data, pero `Report` no declara
-`AuditingEntityListener`. La prueba `documentsCurrentMissingAutomaticAuditListener`
-documenta fechas automáticas ausentes; no presenta esa limitación como auditoría funcional.
-Otra prueba comprueba el mapeo de fechas asignadas explícitamente y `created_at` no actualizable.
-No se cambian entidades ni se corrige automáticamente esta limitación de auditoría.
+`ReportAudit` has Spring Data annotations, but `Report` does not declare `AuditingEntityListener`. The `documentsCurrentMissingAutomaticAuditListener` test documents missing automatic dates; it does not present this limitation as working auditing. Another test checks explicitly assigned date mappings and verifies that `created_at` is not updatable. These tests do not change entities or automatically fix the auditing limitation.

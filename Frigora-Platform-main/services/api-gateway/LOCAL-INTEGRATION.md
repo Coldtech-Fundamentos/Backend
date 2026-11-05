@@ -1,159 +1,112 @@
-# Etapa 4.1: Gateway y aplicaciones reales
+# Stage 4.1: Gateway and real applications
 
-## Estado de la comprobación
+## Verification status
 
-Se inspeccionaron los controllers, las configuraciones de seguridad/CORS y el datasource
-del monolito. Su datasource predeterminado es remoto y usa `ddl-auto=update`.
-Se encontró el servicio Windows `MySQL80` activo, pero ninguna conexión local con
-credenciales explícitamente autorizadas disponible para esta sesión.
-No se arrancó el monolito con el datasource remoto ni se ejecutaron operaciones SQL.
-No se validó la comunicación Gateway → monolito real ni Gateway → Reporting real.
+The monolith controllers, security and CORS configuration, and datasource were inspected. Its default datasource is remote, and it uses `ddl-auto=update`. The Windows `MySQL80` service was running, but no local connection with explicitly authorized credentials was available for this session. The monolith was not started with the remote datasource, and no SQL operations were executed. Communication from the Gateway to the real monolith or Reporting Service was not verified.
 
-Comprobación del entorno en esta etapa: 8080, 8081 y 8085 sin listeners; 3306 con
-un listener. No hay conflicto observado entre los tres puertos de aplicación,
-pero ninguna de las tres aplicaciones estaba ejecutándose en esos puertos.
-Resultado automatizado: 9 pruebas del Gateway y 19 pruebas seleccionadas del
-monolito aprobadas, sin fallos ni omisiones. No se ejecutó ninguna prueba MySQL.
+At the time of this check, ports 8080, 8081, and 8085 had no listeners, while port 3306 had a listener. There was no observed conflict among the application ports, but none of the three applications was running on them. Automated results reported nine passing Gateway tests and 19 selected passing monolith tests, with no failures or skips. No MySQL tests were run.
 
-La suite del Gateway usa el Gateway real con destinos HTTP temporales. Las pruebas
-de IAM ejecutadas por separado usan repositorios simulados; no validan un login real
-contra MySQL. Estos resultados no constituyen una integración del sistema completo.
+The Gateway suite uses the real Gateway with temporary HTTP destinations. Separately run IAM tests use mocked repositories and do not validate a real login against MySQL. These results do not constitute full-system integration.
 
-## Rutas reales inspeccionadas
+## Inspected application routes
 
-Todas las rutas de la tabla llevan el prefijo `/api/v1`.
+Every route in the table uses the `/api/v1` prefix.
 
-| Contexto | Controller | Métodos y rutas |
+| Context | Controller | Methods and routes |
 | --- | --- | --- |
 | IAM | AuthenticationController | POST `/authentication/sign-in`, `/authentication/sign-up` |
 | IAM | UsersController | GET `/users`, `/users/{id}`, `/users/role/{role}` |
-| Activos | SiteController | POST/GET `/sites`; GET `/sites/{id}`, `/sites/by-owner/{ownerId}`; DELETE `/sites/{id}` |
-| Monitoreo | EquipmentController | POST/GET `/equipment`; GET `/equipment/{id}`, `/equipment/by-owner/{ownerId}`; DELETE `/equipment/{id}` |
-| Monitoreo | AlertController | POST/GET `/alert`; GET `/alert/{id}`; PATCH `/alert/{id}/acknowledge`; DELETE `/alert/{id}` |
-| Solicitudes | ServiceRequestsController | POST `/service-requests`; GET `/service-requests/{id}`, `/service-requests/requester/{requesterId}`, `/service-requests/provider/{providerId}`; DELETE `/service-requests/{id}` |
-| Solicitudes | ServiceRequestsController | PATCH `/service-requests/{id}/accept`, `/reject`, `/cancel`, `/assign-technician`, `/complete` |
-| Solicitudes | InterventionsController | POST `/interventions`; GET `/interventions/{id}`, `/interventions/serviceRequest/{serviceRequestId}` |
-| Técnicos | TechniciansController | POST/GET `/technicians`; GET/PUT/DELETE `/technicians/{id}` |
+| Assets | SiteController | POST/GET `/sites`; GET `/sites/{id}`, `/sites/by-owner/{ownerId}`; DELETE `/sites/{id}` |
+| Monitoring | EquipmentController | POST/GET `/equipment`; GET `/equipment/{id}`, `/equipment/by-owner/{ownerId}`; DELETE `/equipment/{id}` |
+| Monitoring | AlertController | POST/GET `/alert`; GET `/alert/{id}`; PATCH `/alert/{id}/acknowledge`; DELETE `/alert/{id}` |
+| Service requests | ServiceRequestsController | POST `/service-requests`; GET `/service-requests/{id}`, `/service-requests/requester/{requesterId}`, `/service-requests/provider/{providerId}`; DELETE `/service-requests/{id}` |
+| Service requests | ServiceRequestsController | PATCH `/service-requests/{id}/accept`, `/reject`, `/cancel`, `/assign-technician`, `/complete` |
+| Service requests | InterventionsController | POST `/interventions`; GET `/interventions/{id}`, `/interventions/serviceRequest/{serviceRequestId}` |
+| Technicians | TechniciansController | POST/GET `/technicians`; GET/PUT/DELETE `/technicians/{id}` |
 | Feedback | ReviewsController | POST/GET `/reviews`; GET `/reviews/{id}`, `/reviews/service-request/{serviceRequestId}` |
 | Reporting | ReportController | POST/GET `/reports`; GET/PUT/DELETE `/reports/{id}` |
 
-Filtros reales: `/alert?equipmentId=...`, `/technicians?providerId=...`,
-`/service-requests/provider/{providerId}?status=...` y `/reports?equipmentId=...`.
-El sufijo `serviceRequest` de intervenciones conserva su mayúscula y `/alert` es singular.
+Observed filters include `/alert?equipmentId=...`, `/technicians?providerId=...`, `/service-requests/provider/{providerId}?status=...`, and `/reports?equipmentId=...`. The `serviceRequest` suffix in intervention routes preserves its capitalization, and `/alert` is singular.
 
-El Gateway envía exclusivamente `/api/v1/reports` y descendientes a 8085.
-Todas las otras rutas `/api/**` van a 8081 sin eliminar prefijos ni modificar JSON.
-Reporting sigue existiendo en el monolito, pero no se usa como fallback.
+The Gateway sends only `/api/v1/reports` and its descendants to port 8085. All other `/api/**` routes go to port 8081 without removing prefixes or modifying JSON. Reporting still exists in the monolith but is not used as a fallback.
 
-## Configuraciones exactas para IntelliJ
+## IntelliJ IDEA run configurations
 
-Importar los tres POM como proyectos Maven independientes; seleccionar JDK 21.
-No combinar sus classpaths ni usar el módulo monolítico para ejecutar los servicios.
+Import all three POM files as separate Maven projects and select JDK 21. Do not combine their classpaths or use the monolith module to run the services.
 
-### Monolito
+### Monolith
 
-- Clase: `com.frigora.frigoraplatform.FrigoraPlatformApplication`.
-- Classpath: módulo de la raíz; working directory: raíz del repositorio.
-- Variables obligatorias para este ensayo local:
+- Main class: `com.frigora.frigoraplatform.FrigoraPlatformApplication`.
+- Classpath: root module; working directory: application root.
+- Required variables for this local check:
 
-```text
+~~~text
 PORT=8081
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/<base-local-de-pruebas-autorizada>?serverTimezone=UTC
-SPRING_DATASOURCE_USERNAME=<usuario-local-autorizado>
-SPRING_DATASOURCE_PASSWORD=<contraseña-real-autorizada>
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/<authorized-local-test-database>?serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=<authorized-local-user>
+SPRING_DATASOURCE_PASSWORD=<authorized-local-password>
 SPRING_JPA_HIBERNATE_DDL_AUTO=validate
-AUTHORIZATION_JWT_SECRET=<clave-de-pruebas-compartida-con-reporting>
-```
+AUTHORIZATION_JWT_SECRET=<test-secret-shared-with-reporting>
+~~~
 
-Los marcadores deben reemplazarse con valores reales del entorno de pruebas: no son
-credenciales ejecutables. La base local debe existir y contener el esquema completo
-compatible y un usuario de prueba provisionado con contraseña BCrypt válida.
-No habilitar `update` para resolver errores de esquema durante esta comprobación.
-No ejecutar con la configuración remota por defecto.
+Replace placeholders with real test-environment values; they are not executable credentials. The local database must exist and contain a compatible schema and a test user provisioned with a BCrypt password. Do not enable `update` to work around schema errors. Do not run with the default remote configuration.
 
 ### Reporting Service
 
-- Clase: `com.frigora.frigoraplatform.ReportingServiceApplication`.
+- Main class: `com.frigora.frigoraplatform.ReportingServiceApplication`.
 - Classpath: `reporting-service`; working directory: `services/reporting-service`.
-- Puerto existente: 8085.
-- Variables: `REPORTING_DB_HOST=localhost`, `REPORTING_DB_PORT=3306`,
-  `REPORTING_DB_USERNAME`, `REPORTING_DB_PASSWORD`, `REPORTING_JWT_SECRET`.
-- Usar su base independiente `frigora_reporting_db` y la misma clave HMAC de pruebas
-  del monolito. Flyway prepara solo esa base según la etapa 3.1.
+- Existing port: 8085.
+- Variables: `REPORTING_DB_HOST=localhost`, `REPORTING_DB_PORT=3306`, `REPORTING_DB_USERNAME`, `REPORTING_DB_PASSWORD`, `REPORTING_JWT_SECRET`.
+- Use its separate `frigora_reporting_db` database and the same test HMAC secret as the monolith. Flyway prepares only this database according to stage 3.1.
 
 ### Gateway
 
-- Clase: `com.frigora.gateway.ApiGatewayApplication`.
+- Main class: `com.frigora.gateway.ApiGatewayApplication`.
 - Classpath: `api-gateway`; working directory: `services/api-gateway`.
-- Puerto: 8080; variables explícitas recomendadas:
+- Port: 8080; recommended explicit variables:
 
-```text
+~~~text
 MONOLITH_URL=http://localhost:8081
 REPORTING_SERVICE_URL=http://localhost:8085
 ANGULAR_ORIGIN=http://localhost:4200
-```
+~~~
 
-Antes del arranque comprobar que los puertos están libres; después deben pertenecer
-a tres procesos Java distintos:
+Before startup, confirm the ports are free. After startup, the three ports should belong to three distinct Java processes:
 
-```powershell
+~~~powershell
 Get-NetTCPConnection -State Listen |
     Where-Object LocalPort -In 8080,8081,8085 |
     Select-Object LocalAddress,LocalPort,OwningProcess
-```
+~~~
 
-Arrancar primero monolito y Reporting; confirmar sus logs sin publicar secretos.
-Después iniciar Gateway. No ejecutar dos instancias de la misma configuración.
+Start the monolith and Reporting first; review their logs without exposing secrets. Then start the Gateway. Do not run two instances with the same configuration.
 
-## Comprobación manual pendiente (solo datos de prueba autorizados)
+## Pending manual check (authorized test data only)
 
-1. POST de login al monolito directo en `http://localhost:8081/api/v1/authentication/sign-in`
-   y a través de `http://localhost:8080/api/v1/authentication/sign-in`, usando el mismo
-   JSON real `{ "username": "...", "password": "..." }` de un usuario de pruebas.
-   Comprobar el contrato `id`, `username`, `token`, `role`; no exigir igualdad literal
-   de los JWT emitidos ni registrarlos en consola/archivos.
-2. Con el token obtenido, comparar GET directo y vía Gateway para `/api/v1/users/{id}`
-   y los listados de cada contexto de la tabla. Usar únicamente IDs de fixtures conocidos.
-   Comparar status y JSON. Validar filtros con IDs reales de prueba.
-3. Repetir sin Authorization y con token inválido: comprobar el 401 real del monolito
-   y su propagación. Un token correcto para un ID inexistente puede dar 404 según el controller.
-4. Probar CORS desde el origen permitido y uno no permitido. El origen rechazado debe
-   dar 403 en el Gateway; distinguirlo de un 403 emitido por el monolito. No hay una
-   regla general por rol en su SecurityFilterChain: no asumir que un rol diferente da 403.
-5. GET de reportes: comparar 8085 directo frente a 8080, con tokens nuevos que tengan
-   `userId`. Comprobar aislamiento y 404 para reportes ajenos en la base independiente.
-   Un token antiguo sin `userId` debe seguir autenticando el monolito, pero Reporting devuelve 401.
-6. No ejecutar POST de negocio, PUT, PATCH ni DELETE contra datos existentes para este
-   ensayo. Su transporte se verifica automáticamente; un ensayo real de escrituras
-   requiere fixtures y una autorización específica sobre una base desechable.
+1. POST login directly to the monolith at `http://localhost:8081/api/v1/authentication/sign-in` and through the Gateway at `http://localhost:8080/api/v1/authentication/sign-in`, using the same real JSON `{ "username": "...", "password": "..." }` for a test user. Check the `id`, `username`, `token`, and `role` contract. Do not require literal JWT equality or write tokens to console or files.
+2. With the returned token, compare direct and Gateway GET requests for `/api/v1/users/{id}` and the listings of each context in the table. Use only known fixture IDs. Compare status codes and JSON. Verify filters with real test IDs.
+3. Repeat without Authorization and with an invalid token. Check the real monolith 401 response and its propagation. A valid token for a missing ID may return 404 depending on the controller.
+4. Test CORS from an allowed and a disallowed origin. A rejected origin should receive 403 from the Gateway; distinguish it from a 403 returned by the monolith. The SecurityFilterChain has no general role-based rule, so do not assume a different role will return 403.
+5. Compare direct Reporting GET requests on 8085 with Gateway requests on 8080, using new tokens that contain `userId`. Verify owner isolation and 404 for another owner's reports in the separate database. An old token without `userId` should still authenticate to the monolith, while Reporting returns 401.
+6. Do not run business POST, PUT, PATCH, or DELETE requests against existing data for this check. Their transport is covered automatically; real write tests require fixtures and explicit authorization to use a disposable database.
 
-Login no crea datos de negocio, pero requiere credenciales existentes autorizadas.
-No crear cuentas ni modificar las bases para fabricar un resultado de integración.
+Login does not create business data, but it requires authorized existing credentials. Do not create accounts or modify databases to manufacture an integration result.
 
-## Seguridad y CORS observados
+## Observed security and CORS
 
-El monolito conserva CSRF deshabilitado y sesiones stateless. Login/registro son públicos;
-las otras rutas requieren autenticación. El filtro valida el JWT, carga al usuario por
-username y conserva la identidad neutral. Esta etapa no cambia ese mecanismo.
+The monolith has CSRF disabled and uses stateless sessions. Login and registration are public; other routes require authentication. The filter validates the JWT, loads the user by username, and preserves the neutral identity. This stage does not change that mechanism.
 
-Su CORS permite `http://localhost:4200` y `https://frigora-frontend.vercel.app`,
-GET/POST/PUT/PATCH/DELETE/OPTIONS, cualquier encabezado y credenciales. El Gateway
-actual admite únicamente el origen local configurado, y Authorization/Content-Type/Accept.
-La deduplicación evita repetir los encabezados CORS de ambos procesos.
-Si Angular usa un origen distinto, ajustar y coordinar las configuraciones antes de conectarlo.
+Monolith CORS allows `http://localhost:4200` and `https://frigora-frontend.vercel.app`, GET/POST/PUT/PATCH/DELETE/OPTIONS, any header, and credentials. The current Gateway allows only its configured local origin and Authorization, Content-Type, and Accept headers. Deduplication prevents both processes from emitting duplicate CORS headers. If Angular uses another origin, coordinate and update both configurations before connecting it.
 
-## Pruebas reproducibles sin MySQL
+## Reproducible tests without MySQL
 
-Desde la raíz, con `JAVA_HOME` configurado:
+From the application root, with `JAVA_HOME` configured:
 
-```powershell
+~~~powershell
 ./mvnw.cmd -f services/api-gateway/pom.xml package
 ./mvnw.cmd '-Dtest=ReportAuthorizationTests,TokenServiceImplTests,AuthenticatedIdentityTests' test
-```
+~~~
 
-No ejecutar la suite completa del monolito como sustituto de estos selectores:
-`contextLoads` utiliza su configuración principal, y existen pruebas Testcontainers
-de etapas anteriores que no forman parte de esta etapa.
+Do not run the full monolith suite as a substitute for these selectors: `contextLoads` uses the main configuration, and earlier stages include Testcontainers tests that are outside this check.
 
-Pendiente: disponer de configuración MySQL local autorizada, arrancar las aplicaciones
-y realizar el ensayo real antes de cambiar la URL base de Angular.
+Pending: configure an authorized local MySQL database, start the applications, and perform the real integration check before changing Angular's API base URL.

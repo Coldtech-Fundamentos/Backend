@@ -1,110 +1,78 @@
 # Frigora API Gateway
 
-Proyecto Maven independiente con Java 21, Spring Boot **4.0.6**, Spring Cloud BOM
-**2025.1.4** y Spring Cloud Gateway Server WebFlux **5.0.4** (versión del BOM).
-Usa Reactor Netty; no incluye MVC, seguridad de usuarios, JPA ni conexión MySQL.
+Independent Maven project using Java 21, Spring Boot **4.0.6**, the Spring Cloud BOM **2025.1.4**, and Spring Cloud Gateway Server WebFlux **5.0.4**. It uses Reactor Netty and does not include MVC, user security, JPA, or a MySQL connection.
 
-Compatibilidad comprobada en la [matriz oficial de Spring Cloud](https://spring.io/projects/spring-cloud/):
-la línea 2025.1.x admite Spring Boot 4.0.x. Se conserva activo el verificador
-de compatibilidad de Spring Cloud; no se fuerza ni desactiva para arrancar.
-El BOM resuelto y el arranque de las pruebas confirman las versiones utilizadas.
-Configuración CORS basada en las [propiedades oficiales de Gateway](https://docs.spring.io/spring-cloud-gateway/reference/configprops.html).
+The Spring Cloud compatibility verifier remains enabled. CORS is configured with Spring Cloud Gateway properties.
 
-## Ejecutar desde IntelliJ
+## Run from IntelliJ IDEA
 
-1. Importar `services/api-gateway/pom.xml` como proyecto Maven adicional.
-2. Elegir JDK 21 y el módulo `api-gateway` como classpath.
-3. Crear una configuración Application para `com.frigora.gateway.ApiGatewayApplication`.
-4. Usar `services/api-gateway` como working directory.
-5. Configurar las variables opcionales de la tabla siguiente y ejecutar.
+1. Import `services/api-gateway/pom.xml` as an additional Maven project.
+2. Select JDK 21 and the `api-gateway` module as the runtime classpath.
+3. Create an Application configuration for `com.frigora.gateway.ApiGatewayApplication`.
+4. Set `services/api-gateway` as the working directory.
+5. Configure the optional environment variables below and run the application.
 
-| Variable | Valor predeterminado |
+| Variable | Default |
 | --- | --- |
 | `REPORTING_SERVICE_URL` | `http://localhost:8085` |
 | `MONOLITH_URL` | `http://localhost:8081` |
 | `ANGULAR_ORIGIN` | `http://localhost:4200` |
 
-Los destinos deben ser URLs base sin prefijos de ruta, por ejemplo `http://localhost:8085`.
-El Gateway escucha en **8080**; `SERVER_PORT` permite sobrescribirlo si es necesario.
-No necesita secretos JWT ni credenciales MySQL. Puede arrancar sin los destinos activos.
+Destination values must be base URLs without path prefixes. The Gateway listens on port **8080**; `SERVER_PORT` can override it. It needs no JWT secrets or MySQL credentials and can start when its destinations are unavailable.
 
-Desde la raíz del backend, con `JAVA_HOME` configurado:
+From the backend application directory, with `JAVA_HOME` configured:
 
-```powershell
-./mvnw.cmd -f services/api-gateway/pom.xml package
-./mvnw.cmd -f services/api-gateway/pom.xml spring-boot:run
-```
+~~~powershell
+.\mvnw.cmd -f services\api-gateway\pom.xml package
+.\mvnw.cmd -f services\api-gateway\pom.xml spring-boot:run
+~~~
 
-También puede ejecutarse `target/api-gateway-0.0.1-SNAPSHOT.jar` con `java -jar`.
+You can also run `target/api-gateway-0.0.1-SNAPSHOT.jar` with `java -jar`.
 
-## Puertos del conjunto
+## Application ports
 
-| Aplicación | Puerto | Cómo configurarlo |
+| Application | Port | Configuration |
 | --- | --- | --- |
-| Gateway | 8080 | Configuración de este proyecto |
-| Monolito | 8081 | Agregar **`PORT=8081`** a su configuración de ejecución en IntelliJ |
-| Reporting Service | 8085 | Configuración existente del servicio |
+| Gateway | 8080 | This project's configuration |
+| Monolith | 8081 | Set `PORT=8081` in the IntelliJ run configuration |
+| Reporting Service | 8085 | Existing service configuration |
 
-El monolito todavía declara `server.port=${PORT:8080}`. Es necesario asignarle
-8081 en su ejecución para evitar la colisión; no se cambió su archivo de configuración.
-Reporting mantiene sus requisitos de MySQL/Flyway/JWT; el Gateway no los sustituye.
+The monolith defaults to port 8080, so set its port to 8081 to avoid a conflict. Its configuration file has not been changed. Reporting retains its MySQL, Flyway, and JWT requirements; the Gateway does not replace them.
 
-## Rutas
+## Routes
 
-| ID | Predicado | Orden | Destino |
+| ID | Predicate | Order | Destination |
 | --- | --- | --- | --- |
-| reporting | `/api/v1/reports` y `/api/v1/reports/**` | -10 | `REPORTING_SERVICE_URL` |
+| reporting | `/api/v1/reports` and `/api/v1/reports/**` | -10 | `REPORTING_SERVICE_URL` |
 | monolith | `/api/**` | 0 | `MONOLITH_URL` |
 
-El menor orden tiene prioridad. No hay StripPrefix, RewritePath ni reintentos
-automáticos. Se conservan `/api/v1`, métodos, query string, JSON y Authorization.
-Login y registro siguen en `/api/v1/authentication/**` en el monolito.
-La validación JWT sigue siendo responsabilidad de los servicios, sin dependencia IAM en el Gateway.
+The lower order value has priority. The Gateway does not strip or rewrite paths and does not retry automatically. It preserves `/api/v1`, HTTP methods, query strings, JSON bodies, and the Authorization header. Login and registration remain at `/api/v1/authentication/**` in the monolith. JWT validation remains the responsibility of each service.
 
-Si Reporting cae, no se utiliza como fallback el Reporting antiguo del monolito:
-esto evita escribir en dos almacenamientos diferentes. Errores de conexión/DNS se
-traducen a **502 Bad Gateway** y los timeouts a **504 Gateway Timeout**.
-Las respuestas HTTP de los servicios, incluidos 401/404, se transmiten sin sustituirlas.
-Hay 2 segundos de límite de conexión y 10 segundos de espera de respuesta.
+If Reporting is unavailable, requests are not sent to the old Reporting implementation in the monolith. Connection or DNS errors become **502 Bad Gateway**; timeouts become **504 Gateway Timeout**. HTTP responses from services, including 401 and 404, are forwarded unchanged. The connection timeout is two seconds and the response timeout is ten seconds.
 
 ## CORS
 
-Origen permitido por defecto: **`http://localhost:4200`**, el origen Angular local
-declarado en el CORS actual del monolito. No hay código Angular en este checkout para
-confirmar otro puerto; si el frontend usa otro origen, ajustar `ANGULAR_ORIGIN`.
-El origen debe coincidir exactamente, incluido esquema y puerto.
+The default allowed origin is **`http://localhost:4200`**, matching the local Angular origin configured in the monolith. This checkout does not contain Angular, so confirm the actual frontend origin and set `ANGULAR_ORIGIN` if it differs. The origin must match exactly, including scheme and port.
 
-Se permiten GET, HEAD, POST, PUT, PATCH, DELETE y OPTIONS, y los encabezados
-Authorization, Content-Type y Accept. Credenciales habilitadas para conservar
-compatibilidad con la configuración existente, sin orígenes comodín.
-Los preflight se resuelven en el Gateway y no requieren que el destino esté activo.
-Se deduplican Access-Control-Allow-Origin y Access-Control-Allow-Credentials porque
-el monolito también los emite. CORS solo afecta a navegadores: no reemplaza autorización.
+The Gateway allows GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, with Authorization, Content-Type, and Accept headers. Credentials are enabled for compatibility with the existing setup, without wildcard origins. Preflight requests are handled by the Gateway and do not require an active destination. The Gateway deduplicates Access-Control-Allow-Origin and Access-Control-Allow-Credentials because the monolith also emits them. CORS applies to browsers and does not replace authorization.
 
-## Pruebas
+## Tests and limitations
 
-`ApiGatewayTests` arranca el Gateway real en puerto aleatorio y dos servidores HTTP
-temporales del JDK como destinos. No requiere monolito, Reporting, Angular, MySQL
-ni contenedores. Verifica:
+`ApiGatewayTests` starts the real Gateway on a random port and uses two temporary JDK HTTP servers as destinations. It does not require the monolith, Reporting, Angular, MySQL, or containers. It verifies:
 
-- Ruta de reportes, tanto la colección como IDs, con prioridad sobre `/api/**`.
-- Rutas del monolito, login, GET/POST/PUT/DELETE, prefijos, query, cuerpos y Authorization.
-- Preflight permitido, origen/encabezado rechazados y deduplicación CORS.
-- Destino desconectado: 502 sin detalles internos y sin fallback al monolito.
-- Conservación de 404 del destino y rechazo de rutas fuera de `/api/**`.
+- Reporting collection and item routes take priority over `/api/**`.
+- Monolith routes, login, GET/POST/PUT/DELETE, path prefixes, query strings, bodies, and Authorization.
+- Allowed and rejected preflight requests, rejected origins and headers, and CORS header deduplication.
+- A disconnected destination returns 502 without internal details or fallback to the monolith.
+- Destination 404 responses are preserved and paths outside `/api/**` are rejected.
 
-Las pruebas no verifican la lógica ni la autenticación de los servicios reales.
-La comprobación manual del sistema completo sí requiere monolito y Reporting
-funcionando, con sus bases y tokens válidos. El escenario de timeout 504 está
-configurado pero no se simula en esta suite.
+These tests do not verify the real services' business logic or authentication. A manual full-system check requires the monolith and Reporting to run with valid databases and tokens. The 504 timeout configuration is not simulated by this suite.
 
-## Antes de conectar Angular
+## Before connecting Angular
 
-- Iniciar el monolito en 8081 y Reporting en 8085; probar sus dependencias locales.
-- Confirmar el origen Angular y, en una etapa posterior, cambiar su URL base al Gateway.
-- Acordar la migración y el corte de datos: reportes ya se enrutan exclusivamente
-  al servicio nuevo, sin copiar los reportes antiguos en esta etapa.
-- Probar login, JWT y CRUD completos a través de 8080 con los servicios reales.
+- Start the monolith on 8081 and Reporting on 8085, then verify their local dependencies.
+- Confirm the Angular origin and change its API base URL to the Gateway in a later step.
+- Agree on the data migration and cutover plan. Reports already route exclusively to the new service; existing reports have not been copied in this stage.
+- Test login, JWT handling, and Reporting CRUD through port 8080 using the real services.
 
-No se modificaron los proyectos existentes, Angular ni datos; no hay despliegue,
-descubrimiento de servicios ni servidor de configuración.
+Existing applications, Angular, and data were not changed. This project does not implement deployment, service discovery, or a configuration server.
