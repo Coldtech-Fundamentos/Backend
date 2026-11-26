@@ -27,7 +27,7 @@ public class SiteQueryServiceImpl implements SiteQueryService {
 
     @Override
     public Optional<Site> handle(GetSiteByIdQuery query) {
-        return siteRepository.findById(query.Id());
+        return siteRepository.findByIdAndOwnerId(query.Id(), query.ownerId());
     }
 
     @Override

@@ -31,13 +31,14 @@ public class AlertQueryServiceImpl implements AlertQueryService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Alert> getById(GetAlertByIdQuery query) {
-        return alertRepository.findById(query.id());
+        return alertRepository.findByIdAndTenantId(query.id(), query.tenantId());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Alert> getAllByEquipmentId(GetAllAlertsByEquipmentIdQuery query) {
-        return alertRepository.findByEquipmentId(query.equipmentId());
+        return alertRepository.findByEquipmentIdAndTenantId(
+                query.equipmentId(), query.tenantId());
     }
 
     @Override

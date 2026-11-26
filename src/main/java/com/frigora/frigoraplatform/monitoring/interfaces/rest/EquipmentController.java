@@ -49,9 +49,11 @@ public class EquipmentController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Gets a Equipment by Id")
-    public ResponseEntity<EquipmentResource> getById(@PathVariable Long id) {
+    public ResponseEntity<EquipmentResource> getById(
+            @PathVariable Long id, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         return equipmentQueryService
-                .getById(new GetEquipmentByIdQuery(id))
+                .getById(new GetEquipmentByIdQuery(id, ownerId))
                 .map(
                         equipment ->
                                 ResponseEntity.ok(
@@ -61,7 +63,12 @@ public class EquipmentController {
 
     @GetMapping("/by-owner/{ownerId}")
     @Operation(summary = "Get all equipments by owner ID")
-    public ResponseEntity<List<EquipmentResource>> getByOwner(@PathVariable Long ownerId) {
+    public ResponseEntity<List<EquipmentResource>> getByOwner(
+            @PathVariable Long ownerId, Authentication authentication) {
+        Long authenticatedOwnerId = (long) AuthenticatedUser.requireUserId(authentication);
+        if (!authenticatedOwnerId.equals(ownerId)) {
+            return ResponseEntity.notFound().build();
+        }
         var equipments =
                 equipmentQueryService.getAllByOwner(new GetEquipmentsByOwnerQuery(ownerId));
         return ResponseEntity.ok(equipmentResourceFromEntityAssembler.toResources(equipments));
@@ -82,8 +89,9 @@ public class EquipmentController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Equipment")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        var deleted = equipmentCommandService.delete(new DeleteEquipmentCommand(id));
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
+        var deleted = equipmentCommandService.delete(new DeleteEquipmentCommand(id, ownerId));
         return deleted
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();

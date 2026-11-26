@@ -42,7 +42,7 @@ public class AlertCommandServiceImpl implements AlertCommandService {
     @Transactional
     public Optional<Alert> acknowledge(AcknowledgeAlertCommand command) {
         return alertRepository
-                .findById(command.id())
+                .findByIdAndTenantId(command.id(), command.tenantId())
                 .map(
                         alert -> {
                             alert.acknowledge();
@@ -54,7 +54,7 @@ public class AlertCommandServiceImpl implements AlertCommandService {
     @Transactional
     public Optional<Alert> resolve(AcknowledgeAlertCommand command) {
         return alertRepository
-                .findById(command.id())
+                .findByIdAndTenantId(command.id(), command.tenantId())
                 .map(
                         alert -> {
                             alert.resolve();
@@ -66,7 +66,7 @@ public class AlertCommandServiceImpl implements AlertCommandService {
     @Transactional
     public Optional<Alert> close(AcknowledgeAlertCommand command) {
         return alertRepository
-                .findById(command.id())
+                .findByIdAndTenantId(command.id(), command.tenantId())
                 .map(
                         alert -> {
                             alert.close();
@@ -77,10 +77,6 @@ public class AlertCommandServiceImpl implements AlertCommandService {
     @Override
     @Transactional
     public boolean delete(DeleteAlertCommand command) {
-        if (!alertRepository.existsById(command.id())) {
-            return false;
-        }
-        alertRepository.deleteById(command.id());
-        return true;
+        return alertRepository.deleteByIdAndTenantId(command.id(), command.tenantId()) > 0;
     }
 }

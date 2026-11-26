@@ -41,10 +41,6 @@ public class EquipmentCommandServiceImpl implements EquipmentCommandService {
     @Override
     @Transactional
     public boolean delete(DeleteEquipmentCommand command) {
-        if (!equipmentRepository.existsById(command.id())) {
-            return false;
-        }
-        equipmentRepository.deleteById(command.id());
-        return true;
+        return equipmentRepository.deleteByIdAndOwnerId(command.id(), command.ownerId()) > 0;
     }
 }

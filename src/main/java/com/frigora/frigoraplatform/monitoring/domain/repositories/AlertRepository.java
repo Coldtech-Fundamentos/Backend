@@ -19,4 +19,10 @@ public interface AlertRepository {
     void deleteById(Long id);
 
     boolean existsById(Long id);
+
+    Optional<Alert> findByIdAndTenantId(Long id, Long tenantId);
+
+    List<Alert> findByEquipmentIdAndTenantId(Long equipmentId, Long tenantId);
+
+    long deleteByIdAndTenantId(Long id, Long tenantId);
 }
