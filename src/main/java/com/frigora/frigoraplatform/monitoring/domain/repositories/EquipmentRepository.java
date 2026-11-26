@@ -17,4 +17,8 @@ public interface EquipmentRepository {
     boolean existsById(Long id);
 
     List<Equipment> findByOwnerId(Long ownerId);
+
+    Optional<Equipment> findByIdAndOwnerId(Long id, Long ownerId);
+
+    long deleteByIdAndOwnerId(Long id, Long ownerId);
 }

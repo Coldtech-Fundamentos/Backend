@@ -37,7 +37,8 @@ public class SiteCommandServiceImpl implements SiteCommandService {
     @Override
     @Transactional
     public boolean handle(DeleteSiteCommand command) {
-        Optional<Site> siteOptional = siteRepository.findById(command.siteId());
+        Optional<Site> siteOptional =
+                siteRepository.findByIdAndOwnerId(command.siteId(), command.ownerId());
 
         if (siteOptional.isEmpty()) {
             return false;

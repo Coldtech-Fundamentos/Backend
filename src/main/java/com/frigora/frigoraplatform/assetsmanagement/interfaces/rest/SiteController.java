@@ -91,8 +91,10 @@ public class SiteController {
     public ResponseEntity<SiteResource> getSiteById(
             @Parameter(description = "The unique identifier of the site", required = true)
                     @PathVariable
-                    int id) {
-        var result = siteQueryService.handle(new GetSiteByIdQuery(id));
+                    int id,
+            Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
+        var result = siteQueryService.handle(new GetSiteByIdQuery(id, ownerId));
         return result.map(
                         site ->
                                 ResponseEntity.ok(
@@ -117,7 +119,12 @@ public class SiteController {
     @Operation(summary = "Get all sites by owner ID", operationId = "GetSitesByOwner")
     @ApiResponse(responseCode = "200", description = "List of sites retrieved successfully")
     public ResponseEntity<List<SiteResource>> getSitesByOwner(
-            @Parameter(description = "The owner ID", required = true) @PathVariable Long ownerId) {
+            @Parameter(description = "The owner ID", required = true) @PathVariable Long ownerId,
+            Authentication authentication) {
+        Long authenticatedOwnerId = (long) AuthenticatedUser.requireUserId(authentication);
+        if (!authenticatedOwnerId.equals(ownerId)) {
+            return ResponseEntity.notFound().build();
+        }
         var results = siteQueryService.handle(new GetSitesByOwnerQuery(ownerId));
         var resources =
                 results.stream()
@@ -137,8 +144,10 @@ public class SiteController {
                             description = "The unique identifier of the site to be deleted",
                             required = true)
                     @PathVariable
-                    int id) {
-        boolean deleted = siteCommandService.handle(new DeleteSiteCommand(id));
+                    int id,
+            Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
+        boolean deleted = siteCommandService.handle(new DeleteSiteCommand(id, ownerId));
         if (!deleted) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("Site with ID " + id + " not found.");

@@ -30,7 +30,7 @@ public class EquipmentQueryServiceImpl implements EquipmentQueryService {
     @Override
     @Transactional(readOnly = true)
     public Optional<Equipment> getById(GetEquipmentByIdQuery query) {
-        return equipmentRepository.findById(query.id());
+        return equipmentRepository.findByIdAndOwnerId(query.id(), query.ownerId());
     }
 
     @Override

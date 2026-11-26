@@ -47,9 +47,7 @@ public class AlertController {
         var alerts =
                 equipmentId != null
                         ? alertQueryService.getAllByEquipmentId(
-                                new GetAllAlertsByEquipmentIdQuery(equipmentId)).stream()
-                                .filter(alert -> ownerId.equals(alert.getTenantId()))
-                                .toList()
+                                new GetAllAlertsByEquipmentIdQuery(equipmentId, ownerId))
                         : alertQueryService.getAllByTenantId(
                                 new GetAllAlertsByTenantIdQuery(ownerId));
 
@@ -58,9 +56,11 @@ public class AlertController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Gets Alert by Id")
-    public ResponseEntity<AlertResource> getById(@PathVariable Long id) {
+    public ResponseEntity<AlertResource> getById(
+            @PathVariable Long id, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         return alertQueryService
-                .getById(new GetAlertByIdQuery(id))
+                .getById(new GetAlertByIdQuery(id, ownerId))
                 .map(alert -> ResponseEntity.ok(alertResourceFromEntityAssembler.toResource(alert)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -79,17 +79,20 @@ public class AlertController {
 
     @PatchMapping("/{id}/acknowledge")
     @Operation(summary = "Acknowledges an Alert")
-    public ResponseEntity<AlertResource> acknowledge(@PathVariable Long id) {
+    public ResponseEntity<AlertResource> acknowledge(
+            @PathVariable Long id, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         return alertCommandService
-                .acknowledge(new AcknowledgeAlertCommand(id))
+                .acknowledge(new AcknowledgeAlertCommand(id, ownerId))
                 .map(alert -> ResponseEntity.ok(alertResourceFromEntityAssembler.toResource(alert)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Alert")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        var deleted = alertCommandService.delete(new DeleteAlertCommand(id));
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
+        var deleted = alertCommandService.delete(new DeleteAlertCommand(id, ownerId));
         return deleted
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
