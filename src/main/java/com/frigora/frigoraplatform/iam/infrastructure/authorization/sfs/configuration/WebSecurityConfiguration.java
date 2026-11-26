@@ -5,6 +5,7 @@ import com.frigora.frigoraplatform.iam.infrastructure.hashing.bcrypt.BCryptHashi
 import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +35,9 @@ import java.util.List;
 @EnableMethodSecurity
 public class WebSecurityConfiguration {
 
+    @Value("${authorization.jwt.identity-enabled:false}")
+    private boolean jwtIdentityEnabled;
+
     private final UserDetailsService userDetailsService;
 
     private final BearerTokenService tokenService;
@@ -50,7 +54,7 @@ public class WebSecurityConfiguration {
      */
     @Bean
     public BearerAuthorizationRequestFilter authorizationRequestFilter() {
-        return new BearerAuthorizationRequestFilter(tokenService, userDetailsService);
+        return new BearerAuthorizationRequestFilter(tokenService, userDetailsService, jwtIdentityEnabled);
     }
 
     /**

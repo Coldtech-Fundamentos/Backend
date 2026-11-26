@@ -1,8 +1,7 @@
 package com.frigora.frigoraplatform.monitoring.interfaces.rest;
 
-import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
-import com.frigora.frigoraplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
-import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedUser;
+import org.springframework.security.core.Authentication;
 import com.frigora.frigoraplatform.monitoring.domain.model.commands.AcknowledgeAlertCommand;
 import com.frigora.frigoraplatform.monitoring.domain.model.commands.DeleteAlertCommand;
 import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetAlertByIdQuery;
@@ -18,7 +17,6 @@ import com.frigora.frigoraplatform.monitoring.interfaces.rest.transform.CreateAl
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -40,28 +38,18 @@ public class AlertController {
     private final AlertQueryService alertQueryService;
     private final AlertResourceFromEntityAssembler alertResourceFromEntityAssembler;
     private final CreateAlertCommandFromResourceAssembler createAlertCommandFromResourceAssembler;
-    private final BearerTokenService tokenService;
-    private final UserRepository userRepository;
-
-    private Long extractUserId(HttpServletRequest request) {
-        String token = tokenService.getBearerTokenFrom(request);
-        String username = tokenService.getUsernameFromToken(token);
-        User user =
-                userRepository
-                        .findByUsername(username)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + username));
-        return (long) user.getId();
-    }
 
     @GetMapping
     @Operation(summary = "Gets all Alerts for the current user or filtered by equipmentId")
     public ResponseEntity<List<AlertResource>> getAll(
-            @RequestParam(required = false) Long equipmentId, HttpServletRequest request) {
-        Long ownerId = extractUserId(request);
+            @RequestParam(required = false) Long equipmentId, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         var alerts =
                 equipmentId != null
                         ? alertQueryService.getAllByEquipmentId(
-                                new GetAllAlertsByEquipmentIdQuery(equipmentId))
+                                new GetAllAlertsByEquipmentIdQuery(equipmentId)).stream()
+                                .filter(alert -> ownerId.equals(alert.getTenantId()))
+                                .toList()
                         : alertQueryService.getAllByTenantId(
                                 new GetAllAlertsByTenantIdQuery(ownerId));
 
@@ -80,8 +68,8 @@ public class AlertController {
     @PostMapping
     @Operation(summary = "Create a new Alert")
     public ResponseEntity<AlertResource> create(
-            @Valid @RequestBody CreateAlertResource resource, HttpServletRequest request) {
-        Long ownerId = extractUserId(request);
+            @Valid @RequestBody CreateAlertResource resource, Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         var command = createAlertCommandFromResourceAssembler.toCommand(resource, ownerId);
         var created = alertCommandService.create(command);
         var response = alertResourceFromEntityAssembler.toResource(created);

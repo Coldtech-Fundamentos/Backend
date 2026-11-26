@@ -1,6 +1,7 @@
 package com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt;
 
 import com.frigora.frigoraplatform.iam.application.internal.outboundservices.tokens.TokenService;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedIdentity;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -10,6 +11,8 @@ public interface BearerTokenService extends TokenService {
 
     // Verifies signature and expiration; returns null only when userId is absent.
     Integer getUserIdFromToken(String token);
+
+    AuthenticatedIdentity getIdentityFromToken(String token);
 
     /**
      * This method is responsible for extracting the JWT token from the HTTP request.

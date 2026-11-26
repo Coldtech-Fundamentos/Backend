@@ -16,6 +16,11 @@ spring:
             # The monolith also emits CORS headers; browsers require a single value.
             - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin, RETAIN_FIRST
           routes:
+            - id: iam
+              order: -20
+              uri: ${IAM_SERVICE_URL:${MONOLITH_URL:http://localhost:8081}}
+              predicates:
+                - Path=/api/v1/authentication,/api/v1/authentication/**,/api/v1/users,/api/v1/users/**
             - id: reporting
               order: -10
               uri: ${REPORTING_SERVICE_URL:http://localhost:8085}
