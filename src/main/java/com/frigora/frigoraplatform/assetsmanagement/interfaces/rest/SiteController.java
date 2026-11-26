@@ -10,9 +10,8 @@ import com.frigora.frigoraplatform.assetsmanagement.interfaces.rest.resources.Cr
 import com.frigora.frigoraplatform.assetsmanagement.interfaces.rest.resources.SiteResource;
 import com.frigora.frigoraplatform.assetsmanagement.interfaces.rest.transform.CreateSiteCommandFromResourceAssembler;
 import com.frigora.frigoraplatform.assetsmanagement.interfaces.rest.transform.SiteResourceFromEntityAssembler;
-import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
-import com.frigora.frigoraplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
-import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedUser;
+import org.springframework.security.core.Authentication;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -45,18 +43,6 @@ public class SiteController {
 
     private final SiteCommandService siteCommandService;
     private final SiteQueryService siteQueryService;
-    private final BearerTokenService tokenService;
-    private final UserRepository userRepository;
-
-    private Long extractUserId(HttpServletRequest request) {
-        String token = tokenService.getBearerTokenFrom(request);
-        String username = tokenService.getUsernameFromToken(token);
-        User user =
-                userRepository
-                        .findByUsername(username)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + username));
-        return (long) user.getId();
-    }
 
     @PostMapping
     @Operation(summary = "Create a new Site", operationId = "CreateSite")
@@ -68,9 +54,9 @@ public class SiteController {
                 description = "Conflict: A site with the same Contact Name already exists")
     })
     public ResponseEntity<?> createSite(
-            @Valid @RequestBody CreateSiteResource resource, HttpServletRequest request) {
+            @Valid @RequestBody CreateSiteResource resource, Authentication authentication) {
 
-        Long ownerId = extractUserId(request);
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         CreateSiteCommand command =
                 CreateSiteCommandFromResourceAssembler.fromResource(resource, ownerId);
 
@@ -117,8 +103,8 @@ public class SiteController {
     @GetMapping
     @Operation(summary = "Get all sites for the current user", operationId = "GetAllSites")
     @ApiResponse(responseCode = "200", description = "List of sites retrieved successfully")
-    public ResponseEntity<List<SiteResource>> getAllSites(HttpServletRequest request) {
-        Long ownerId = extractUserId(request);
+    public ResponseEntity<List<SiteResource>> getAllSites(Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         var results = siteQueryService.handle(new GetSitesByOwnerQuery(ownerId));
         var resources =
                 results.stream()

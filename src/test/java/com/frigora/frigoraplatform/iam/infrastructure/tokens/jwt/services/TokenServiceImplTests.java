@@ -48,6 +48,7 @@ class TokenServiceImplTests {
         user = mock(User.class);
         when(user.getId()).thenReturn(123);
         when(user.getUsername()).thenReturn("owner@example.test");
+        when(user.getRole()).thenReturn(com.frigora.frigoraplatform.iam.domain.model.valueobjects.Roles.Owner);
         when(repository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
     }
 

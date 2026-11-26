@@ -75,6 +75,7 @@ public class UserDetailsImpl implements AuthenticatedIdentity {
      */
     public static UserDetailsImpl build(User user) {
         var authorities = List.of(new SimpleGrantedAuthority(user.getRole().name()));
-        return new UserDetailsImpl(user.getUsername(), user.getPassword(), authorities);
+        return withValidatedUserId(
+                new UserDetailsImpl(user.getUsername(), user.getPassword(), authorities), user.getId());
     }
 }

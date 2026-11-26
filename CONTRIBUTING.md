@@ -22,6 +22,14 @@ Each independent service requires its own `pom.xml`; these files are source conf
 | Monolith | `pom.xml` | Set `PORT=8081`, an authorized local test datasource, `SPRING_JPA_HIBERNATE_DDL_AUTO=validate`, and `AUTHORIZATION_JWT_SECRET` |
 | API Gateway | `services/api-gateway/pom.xml` | Port 8080; optional `MONOLITH_URL`, `REPORTING_SERVICE_URL`, and `ANGULAR_ORIGIN` default to localhost ports 8081, 8085, and 4200 |
 | Reporting Service | `services/reporting-service/pom.xml` | Port 8085; requires `REPORTING_DB_USERNAME`, `REPORTING_DB_PASSWORD`, and `REPORTING_JWT_SECRET`; optional host and port default to localhost:3306 |
+| IAM Service | `services/iam-service/pom.xml` | Port 8082; requires `IAM_DB_USERNAME`, `IAM_DB_PASSWORD`, `IAM_JWT_SECRET`; optional `IAM_DB_HOST`, `IAM_DB_PORT`; exclusive `frigora_iam_db` schema |
+
+Gateway optionally accepts `IAM_SERVICE_URL` to route authentication and users to
+IAM Service for local tests; its default remains `MONOLITH_URL`. Read
+[the IAM transition and test setup](services/iam-service/README.md) before
+opting in. The monolith also requires `MONOLITH_JWT_IDENTITY_ENABLED=true` and the
+same external HMAC key in `AUTHORIZATION_JWT_SECRET` to accept IAM-only users.
+Both routing and identity changes remain disabled by default.
 
 Reporting uses only the separate `frigora_reporting_db` database. Flyway initializes an empty schema and Hibernate validates it. Supply the same test HMAC key as the IAM issuer externally. Its automated tests use H2 and do not establish real MySQL compatibility. Gateway tests use temporary HTTP destinations; integration with the real services still requires an authorized local environment.
 

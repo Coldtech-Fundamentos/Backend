@@ -2,6 +2,7 @@ package com.frigora.frigoraplatform.iam.infrastructure.authorization.sfs.pipelin
 
 import com.frigora.frigoraplatform.iam.infrastructure.authorization.sfs.model.UsernamePasswordAuthenticationTokenBuilder;
 import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedIdentity;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,8 +35,16 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
     @Qualifier("defaultUserDetailsService")
     private final UserDetailsService userDetailsService;
 
+    private final boolean jwtIdentityEnabled;
+
     public BearerAuthorizationRequestFilter(
             BearerTokenService tokenService, UserDetailsService userDetailsService) {
+        this(tokenService, userDetailsService, false);
+    }
+
+    public BearerAuthorizationRequestFilter(
+            BearerTokenService tokenService, UserDetailsService userDetailsService, boolean jwtIdentityEnabled) {
+        this.jwtIdentityEnabled = jwtIdentityEnabled;
         this.tokenService = tokenService;
         this.userDetailsService = userDetailsService;
     }
@@ -55,12 +64,28 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
             LOGGER.info("FILTER EXECUTED: {}", request.getRequestURI());
             String token = tokenService.getBearerTokenFrom(request);
 
-            if (token != null && tokenService.validateToken(token)) {
+            if (jwtIdentityEnabled) {
+                if (token == null && request.getHeader("Authorization") != null) {
+                    throw new IllegalArgumentException("A Bearer token is required");
+                }
+                if (token != null) {
+                    var identity = tokenService.getIdentityFromToken(token);
+                    var auth = UsernamePasswordAuthenticationTokenBuilder.build(identity, request, identity.getUserId());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            } else if (token != null && tokenService.validateToken(token)) {
 
                 String username = tokenService.getUsernameFromToken(token);
                 Integer userId = tokenService.getUserIdFromToken(token);
 
                 var userDetails = userDetailsService.loadUserByUsername(username);
+                if (userDetails instanceof AuthenticatedIdentity local
+                        && local.getUserId() != null) {
+                    if (userId != null && !userId.equals(local.getUserId())) {
+                        throw new IllegalArgumentException("Identity does not match the local user");
+                    }
+                    userId = local.getUserId();
+                }
 
                 var auth =
                         UsernamePasswordAuthenticationTokenBuilder.build(
@@ -71,6 +96,11 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             LOGGER.error("Cannot set user authentication");
             SecurityContextHolder.clearContext();
+            if (jwtIdentityEnabled) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setHeader("WWW-Authenticate", "Bearer");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);

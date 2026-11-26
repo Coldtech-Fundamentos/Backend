@@ -1,8 +1,7 @@
 package com.frigora.frigoraplatform.monitoring.interfaces.rest;
 
-import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
-import com.frigora.frigoraplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
-import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedUser;
+import org.springframework.security.core.Authentication;
 import com.frigora.frigoraplatform.monitoring.domain.model.commands.DeleteEquipmentCommand;
 import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetEquipmentByIdQuery;
 import com.frigora.frigoraplatform.monitoring.domain.model.queries.GetEquipmentsByOwnerQuery;
@@ -16,7 +15,6 @@ import com.frigora.frigoraplatform.monitoring.interfaces.rest.transform.Equipmen
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
@@ -39,23 +37,11 @@ public class EquipmentController {
     private final EquipmentResourceFromEntityAssembler equipmentResourceFromEntityAssembler;
     private final CreateEquipmentCommandFromResourceAssembler
             createEquipmentCommandFromResourceAssembler;
-    private final BearerTokenService tokenService;
-    private final UserRepository userRepository;
-
-    private Long extractUserId(HttpServletRequest request) {
-        String token = tokenService.getBearerTokenFrom(request);
-        String username = tokenService.getUsernameFromToken(token);
-        User user =
-                userRepository
-                        .findByUsername(username)
-                        .orElseThrow(() -> new RuntimeException("User not found: " + username));
-        return (long) user.getId();
-    }
 
     @GetMapping
     @Operation(summary = "Get all equipments for the current user")
-    public ResponseEntity<List<EquipmentResource>> getAll(HttpServletRequest request) {
-        Long ownerId = extractUserId(request);
+    public ResponseEntity<List<EquipmentResource>> getAll(Authentication authentication) {
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         var equipments =
                 equipmentQueryService.getAllByOwner(new GetEquipmentsByOwnerQuery(ownerId));
         return ResponseEntity.ok(equipmentResourceFromEntityAssembler.toResources(equipments));
@@ -84,9 +70,9 @@ public class EquipmentController {
     @PostMapping
     @Operation(summary = "Create a new Equipment")
     public ResponseEntity<EquipmentResource> create(
-            @Valid @RequestBody CreateEquipmentResource resource, HttpServletRequest request) {
+            @Valid @RequestBody CreateEquipmentResource resource, Authentication authentication) {
 
-        Long ownerId = extractUserId(request);
+        Long ownerId = (long) AuthenticatedUser.requireUserId(authentication);
         var command = createEquipmentCommandFromResourceAssembler.toCommand(resource, ownerId);
         var created = equipmentCommandService.create(command);
         var response = equipmentResourceFromEntityAssembler.toResource(created);

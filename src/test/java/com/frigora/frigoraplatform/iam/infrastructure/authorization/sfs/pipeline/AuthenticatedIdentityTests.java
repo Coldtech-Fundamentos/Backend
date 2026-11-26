@@ -96,6 +96,24 @@ class AuthenticatedIdentityTests {
     }
 
     @Test
+    void legacyModeUsesLoadedIdForOldTokensWithoutClaim() throws Exception {
+        when(users.loadUserByUsername("owner"))
+                .thenReturn(UserDetailsImpl.withValidatedUserId(principal, 123));
+        var auth = authenticate(token(null, SECRET, new Date(System.currentTimeMillis() + 60000)));
+        assertThat(AuthenticatedUser.requireUserId(auth)).isEqualTo(123);
+        assertThat(auth.getAuthorities()).extracting(authority -> authority.getAuthority())
+                .containsExactly("Owner");
+    }
+
+    @Test
+    void legacyModeRejectsSignedIdThatDisagreesWithLoadedUser() throws Exception {
+        when(users.loadUserByUsername("owner"))
+                .thenReturn(UserDetailsImpl.withValidatedUserId(principal, 456));
+        assertThat(authenticate(token(123, SECRET, new Date(System.currentTimeMillis() + 60000))))
+                .isNull();
+    }
+
+    @Test
     void legacyTokenStillAuthenticatesButRequiredIdReturns401() throws Exception {
         var auth = authenticate(token(null, SECRET, new Date(System.currentTimeMillis() + 60000)));
         assertThat(auth.isAuthenticated()).isTrue();

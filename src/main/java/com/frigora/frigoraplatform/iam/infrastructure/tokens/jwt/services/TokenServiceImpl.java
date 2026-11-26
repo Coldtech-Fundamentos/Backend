@@ -1,6 +1,9 @@
 package com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.services;
 
 import com.frigora.frigoraplatform.iam.domain.model.aggregates.User;
+import com.frigora.frigoraplatform.iam.domain.model.valueobjects.Roles;
+import com.frigora.frigoraplatform.iam.infrastructure.authorization.sfs.model.UserDetailsImpl;
+import com.frigora.frigoraplatform.shared.infrastructure.security.AuthenticatedIdentity;
 import com.frigora.frigoraplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 import com.frigora.frigoraplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
 
@@ -15,11 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -82,13 +87,14 @@ public class TokenServiceImpl implements BearerTokenService {
      * @param username the username
      * @return String the JWT token
      */
-    private String buildTokenWithDefaultParameters(String username, int userId) {
+    private String buildTokenWithDefaultParameters(String username, int userId, String role) {
         var issuedAt = new Date();
         var expiration = DateUtils.addDays(issuedAt, expirationDays);
         var key = getSigningKey();
         return Jwts.builder()
                 .subject(username)
                 .claim("userId", userId)
+                .claim("role", role)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
                 .signWith(key)
@@ -184,6 +190,24 @@ public class TokenServiceImpl implements BearerTokenService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    @Override
+    public AuthenticatedIdentity getIdentityFromToken(String token) {
+        var claims = extractAllClaims(token);
+        Object value = claims.get("userId");
+        Object role = claims.get("role");
+        if (claims.getExpiration() == null || claims.getSubject() == null || claims.getSubject().isBlank()
+                || !(value instanceof Integer || value instanceof Long)
+                || ((Number) value).longValue() <= 0
+                || ((Number) value).longValue() > Integer.MAX_VALUE
+                || !(role instanceof String)) {
+            throw new IllegalArgumentException("Invalid identity claims");
+        }
+        var verifiedRole = Roles.valueOf((String) role);
+        var principal = new UserDetailsImpl(
+                claims.getSubject(), "", List.of(new SimpleGrantedAuthority(verifiedRole.name())));
+        return UserDetailsImpl.withValidatedUserId(principal, ((Number) value).intValue());
+    }
+
     private boolean isTokenPresentIn(String authorizationParameter) {
         return StringUtils.hasText(authorizationParameter);
     }
@@ -211,6 +235,6 @@ public class TokenServiceImpl implements BearerTokenService {
 
     @Override
     public String generateToken(User user) {
-        return buildTokenWithDefaultParameters(user.getUsername(), user.getId());
+        return buildTokenWithDefaultParameters(user.getUsername(), user.getId(), user.getRole().name());
     }
 }
