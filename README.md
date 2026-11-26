@@ -7,7 +7,7 @@
 [![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
 
-Backend for Frigora, a refrigeration monitoring and maintenance platform. The root Maven project is the original monolith. The API Gateway, Reporting Service and IAM Service are independent Maven projects under `services/`. The migration to microservices is in progress. See [IAM extraction and local setup](services/iam-service/README.md) for the opt-in JWT identity mode; authentication remains routed to the monolith by default.
+Backend for Frigora, a refrigeration monitoring and maintenance platform. The root Maven project is the original monolith. The API Gateway, Reporting Service, IAM Service and Assets Service are independent Maven projects under `services/`. The migration to microservices is in progress. See [IAM extraction and local setup](services/iam-service/README.md) for the opt-in JWT identity mode and [Assets extraction and local setup](services/assets-service/README.md); authentication remains routed to the monolith by default.
 
 ## Run locally
 

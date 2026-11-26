@@ -171,7 +171,7 @@ class ApiGatewayTests {
     @Test
     void otherModulesAndAuthenticationGoToMonolithWithOriginalMethodsAndHeaders() throws Exception {
         for (String method : List.of("GET", "POST", "PUT", "DELETE")) {
-            String path = "/api/v1/sites/123";
+            String path = "/api/v1/service-requests/123";
             String body = "{\"name\":\"Site\"}";
             var response =
                     send(
@@ -290,8 +290,6 @@ class ApiGatewayTests {
         for (String path :
                 List.of(
                         "/api/v1/users/123",
-                        "/api/v1/sites/by-owner/123",
-                        "/api/v1/equipment/by-owner/123",
                         "/api/v1/alert?equipmentId=50",
                         "/api/v1/service-requests/provider/123?status=Pending",
                         "/api/v1/interventions/serviceRequest/123",
@@ -329,6 +327,35 @@ class ApiGatewayTests {
                                 "Bearer patch-token",
                                 "{\"technicianId\":456}"));
         assertThat(REPORTS).isEmpty();
+    }
+
+    @Test
+    void siteAndEquipmentRoutesRemainOnMonolithUntilOptedIntoExtraction() throws Exception {
+        for (String path :
+                List.of(
+                        "/api/v1/sites",
+                        "/api/v1/sites/42",
+                        "/api/v1/sites/by-owner/42",
+                        "/api/v1/equipment",
+                        "/api/v1/equipment/42",
+                        "/api/v1/equipment/by-owner/42")) {
+            var uri = URI.create(path + "?source=gateway");
+            var response =
+                    send(
+                            request(uri.toString())
+                                    .header("Authorization", "Bearer assets-token")
+                                    .GET());
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.headers().firstValue("X-Upstream")).contains("monolith");
+            assertThat(MONOLITH.poll(2, TimeUnit.SECONDS))
+                    .isEqualTo(
+                            new RecordedRequest(
+                                    "GET",
+                                    uri.getPath(),
+                                    uri.getRawQuery(),
+                                    "Bearer assets-token",
+                                    ""));
+        }
     }
 
     @Test
